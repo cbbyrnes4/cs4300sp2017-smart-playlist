@@ -43,12 +43,15 @@ def encode_string(s):
     return "'" + s.replace("'", "''") + "'"
 
 
+# Usage: python mxm_dataset_to_db.py <database-name>
+# Default database name is db.sqlite3
+# Must have created tables using python manage.py migrate
 if __name__ == '__main__':
 
     # params
-    trainf = sys.argv[1]
-    testf = sys.argv[2]
-    outputf = sys.argv[3]
+    trainf = "data/mxm_dataset_train.txt"
+    testf = "data/mxm_dataset_test.txt"
+    outputf = sys.argv[1]
 
     # sanity checks
     if not os.path.isfile(trainf):
