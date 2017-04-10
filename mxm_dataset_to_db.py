@@ -107,7 +107,7 @@ if __name__ == '__main__':
         for wordcnt in lineparts[2:]:
             wordid, cnt = wordcnt.split(':')
             q = "INSERT INTO smart_playlist_lyric VALUES(" + str(lid) + ", " + str(mxm_tid) + ", " + str(
-                cnt) + ", 0, " + str(wordid) + ")"
+                cnt) + ", 0, NULL, " + str(wordid) + ")"
             conn.execute(q)
             lid += 1
         # verbose
@@ -134,7 +134,7 @@ if __name__ == '__main__':
         for wordcnt in lineparts[2:]:
             wordid, cnt = wordcnt.split(':')
             q = "INSERT INTO smart_playlist_lyric VALUES(" + str(lid) + ", " + str(mxm_tid) + ", " + str(
-                cnt) + ", 1, " + str(wordid) + ")"
+                cnt) + ", 1, NULL, " + str(wordid) + ")"
             conn.execute(q)
             lid += 1
         # verbose
