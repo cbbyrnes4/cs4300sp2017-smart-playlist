@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import django.db.models.deletion
 from django.db import migrations, models
+from django.db import *
 
 
 class Migration(migrations.Migration):
@@ -70,3 +71,12 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='smart_playlist.Song'),
         ),
     ]
+
+
+def create_tables():
+    Audio_model = Migration.CreateModel(name = 'AudioFeatures', fields = models.FloatField(default=0))
+    with connection.schema_editor() as schema_editor:
+        schema_editor.create_model(Audio_model)
+
+def add_Audio_ft(spotify_id,db):
+

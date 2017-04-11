@@ -25,6 +25,19 @@ class Song(models.Model):
 
 class AudioFeatures(models.Model):
     song = models.ForeignKey(Song)
+    danceability = models.FloatFields()
+    energy = models.FloatFields()
+    key = models.IntegerField(unique=True)
+    loudness = models.FloatFields()
+    mode = models.IntegerField(unique=True)
+    speechiness = models.FloatFields()
+    acousticness = models.FloatFields()
+    instrumentalness = models.FloatFields()
+    liveness = models.FloatFields()
+    valence = models.FloatFields()
+    tempo =models.FloatFields()
+    duration_ms = models.IntegerField(unique=True)
+    time_signature = models.IntegerField(unique=True)
 
 
 class Word(models.Model):
@@ -37,3 +50,5 @@ class Lyric(models.Model):
     word = models.ForeignKey(Word)
     count = models.IntegerField()
     is_test = models.IntegerField()
+
+
