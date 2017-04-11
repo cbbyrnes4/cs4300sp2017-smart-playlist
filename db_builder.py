@@ -2,7 +2,6 @@ import django
 import requests
 import spotipy
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
 from musixmatch.api import Error, Request
 from musixmatch.track import Track
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -46,7 +45,7 @@ def search_mxm_for_info(mxm_id):
             song.artist.add(artist)
             print("Added new song %s" % track['track_name'])
             return True, song
-        except Error as e:
+        except Error:
             print("Unable to find track with id %d" % mxm_id)
             return False, None
     return True, song_match[0]
@@ -102,6 +101,14 @@ def search_for_spotify_id(name, artist_name, album_name=None):
 
 
 def get_all_spotify_info(name, artist_name, album_name=None):
+    """
+    Returns the Spotify info for a given song name, artist name and album name
+    Used to match songs in database with Spotify information
+    :param name: Name of song to search for (str)
+    :param artist_name: Name of artist of song (str)
+    :param album_name: Optional name of album of song (str)
+    :return: (Song name, Song ID), ([Artist Name, Artist ID]), (Album Name, Album ID) from Spotify
+    """
     q_string = "track:" + name + " artist:" + artist_name
     if album_name:
         q_string += " album:" + album_name
@@ -119,11 +126,24 @@ def get_all_spotify_info(name, artist_name, album_name=None):
 
 
 def get_mxm_id(name, artist_name):
+    """
+    Returns the Musixmatch id for the song matching name and artist name
+    :param name: Name of the song (str)
+    :param artist_name: Name of the artist (str)
+    :return: musixmatch id of the song
+    """
     song_id, _, _ = get_all_mxm_info(name, artist_name)
     return song_id
 
 
 def get_all_mxm_info(name, artist_name):
+    """
+    Returns all of the musixmatch ids for a given song
+    Used to match songs in database with musixmatch
+    :param name: Name of the song (str)
+    :param artist_name: Name of the artist (str)
+    :return: Song ID, (Artist Name, Artist ID), Album ID from musixmatch
+    """
     query_string = 'matcher.track.get'
     keywords = {'q_artist': artist_name, 'q_track': name, 'apikey': musixmatch_key}
     response = requests.get(str(Request(query_string, keywords))).json()
@@ -136,6 +156,14 @@ def get_all_mxm_info(name, artist_name):
 
 
 def build_song(name, artist_name):
+    """
+    Builds a Song object for the song matching the provided information and creates and dependencies that 
+    don't exist. Adds or creates all of the artists and the album of the song from information from Spotify
+    Also creates an AudioFeature for the song
+    :param name: Name of the song (str)
+    :param artist_name: Name of the artist (str)
+    :return: Created Song Object
+    """
     spo_song_info, spo_artist_info, spo_album_info = get_all_spotify_info(name, artist_name)
     if Song.objects.filter(spotify_id=spo_song_info[1]).exists():
         # Song Already Exists
@@ -170,19 +198,24 @@ def build_song(name, artist_name):
     return song
 
 
-def get_artists(artist_ids):
-    filter_q = Q()
-    for a_id in artist_ids:
-        filter_q = filter_q | Q(spotify_id=a_id)
-    return Artist.objects.filter(filter_q)
-
-
 def mxm_search_lyrics(name, artist_name):
+    """
+    Returns 30% of the lyrics of the song matching the information provided
+    Lyrics are limited to 30% because of musixmatch policy
+    :param name: Name of the song (str)
+    :param artist_name: Name of the artist (str)
+    :return: 30% of the lyrics of the song
+    """
     mxm_id = get_mxm_id(name, artist_name)
     return mxm_get_lyrics(mxm_id)
 
 
 def mxm_get_lyrics(mxm_id):
+    """
+    Returns 30% of the lyrics of the song matching the provided musixmatch id
+    :param mxm_id: Musixmatch id (str)
+    :return: 30% of the lyrics of the song
+    """
     query_string = 'track.lyrics.get'
     keywords = {'track_id': mxm_id, 'apikey': musixmatch_key}
     response = requests.get(str(Request(query_string, keywords))).json()
@@ -191,6 +224,13 @@ def mxm_get_lyrics(mxm_id):
 
 
 def get_audio_features(songs):
+    """
+    Creates audio features for all of the songs in the provided list. If the song doesn't have a spotify id, 
+    one is fetched from the Spotify API. Takes a list of songs because AudioFeature API allows for multiple IDs
+    to be passed at once
+    :param songs: list of song objects to get audio features for [Song]
+    :return: None
+    """
     song_ids = []
     for song in songs:
         if not song.spotify_id:
@@ -203,6 +243,12 @@ def get_audio_features(songs):
 
 
 def create_audio_features(song, features):
+    """
+    Creates an AudioFeature object for the song with the provided audio feature information from Spotify
+    :param song: Song in database (Song)
+    :param features: audio features from the Spotify API (dict)
+    :return: None
+    """
     af = AudioFeatures.objects.create(
         song=song,
         acousticness=features['acousticness'],
