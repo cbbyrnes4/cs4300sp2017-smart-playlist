@@ -58,3 +58,9 @@ class Lyric(models.Model):
     word = models.ForeignKey(Word)
     count = models.IntegerField()
     is_test = models.IntegerField()
+
+
+class Playlist(models.Model):
+    name = models.CharField(max_length=255)
+    spotify_id = models.CharField(max_length=30)
+    songs = models.ManyToManyField(Song)

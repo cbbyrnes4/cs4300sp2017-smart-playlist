@@ -357,3 +357,32 @@ def create_lyrics(bag_of_words):
     """
     # TODO
     pass
+
+
+def browse_playlists():
+    """
+    Browses all the Spotify Categories and creates playlists that haven't been created yet
+    :return: None
+    """
+    # TODO
+    pass
+
+
+def build_playlist(spotify_playlist_id):
+    """
+    Creates a playlist object and all member songs for the provided spotify playlist ID
+    :param spotify_playlist_id: valid Spotify Playlist ID (str)
+    :return: None
+    """
+    # TODO
+    pass
+
+
+def fetch_category_playlists(spotify_catagory_id):
+    """
+    Fetches all playlists in the specified category and creates any playlists that don't already exist
+    :param spotify_catagory_id: valid spotify category ID (str)
+    :return: None
+    """
+    # TODO
+    pass
