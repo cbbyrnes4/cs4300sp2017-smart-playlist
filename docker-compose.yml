@@ -1,0 +1,17 @@
+db:
+    restart: always
+    image: postgres
+    environment:
+        POSTGRES_DATABASE: smartplaylist_postgres
+        POSTGRES_USER: smartplaylist
+        POSTGRES_PASSWORD: smartplaylist_db_password
+    ports:
+        - "5432:5432"
+web:
+    restart: always
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+        - "8000:8000"
+    links:
+        - db
