@@ -254,6 +254,7 @@ def build_song(spo_song_info, spo_artist_info, spo_album_info,
     for artist in artists:
         song.artist.add(artist)
     get_audio_features([song])
+    lyricize(song)
     return song
 
 
@@ -325,3 +326,34 @@ def create_audio_features(song, features):
         valence=features['valence']
     )
     af.save()
+
+
+def lyricize(song):
+    """
+    Creates lyric objects in the database for the given song
+    :param song: song to get lyrics for (Song)
+    :return: None
+    """
+    lyrics = mxm_get_lyrics(song.mxm_tid)
+    bow = bag_of_wordize(lyrics)
+    create_lyrics(bow)
+
+
+def bag_of_wordize(lyrics):
+    """
+    Tokenizes and creates a bag of words with counts for a given string
+    :param lyrics: lyrics of a song (str)
+    :return: dictionary of {'word': word_count}
+    """
+    # TODO
+    pass
+
+
+def create_lyrics(bag_of_words):
+    """
+    Creates lyrics objects in the database for the provided bag of words
+    :param bag_of_words: bag of words with counts {'word': word_count}
+    :return: None
+    """
+    # TODO
+    pass
