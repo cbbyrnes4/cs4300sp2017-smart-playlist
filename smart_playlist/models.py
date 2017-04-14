@@ -59,6 +59,9 @@ class Lyric(models.Model):
     count = models.IntegerField()
     is_test = models.IntegerField()
 
+    def __str__(self):
+        return '%s: (%s, %s)' % (self.song.name, self.word.word, self.count)
+
 
 class Playlist(models.Model):
     name = models.CharField(max_length=255)
