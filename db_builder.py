@@ -1,4 +1,7 @@
+import collections
+
 import django
+import nltk
 import requests
 import spotipy
 from django.core.exceptions import ObjectDoesNotExist
@@ -20,7 +23,7 @@ spotify_secret = '55b73d4d03a44a309973c0693edbeaf9'
 spo_cred_manager = SpotifyClientCredentials(spotify_key, spotify_secret)
 sp = spotipy.Spotify(client_credentials_manager=spo_cred_manager)
 
-from smart_playlist.models import Song, Artist, Lyric, Album, AudioFeatures
+from smart_playlist.models import Song, Artist, Lyric, Album, AudioFeatures, Word
 
 
 def search_mxm_for_info(mxm_id):
@@ -336,7 +339,10 @@ def lyricize(song):
     """
     lyrics = mxm_get_lyrics(song.mxm_tid)
     bow = bag_of_wordize(lyrics)
-    create_lyrics(bow)
+    create_lyrics(song, bow)
+
+
+stemmer = nltk.stem.PorterStemmer()
 
 
 def bag_of_wordize(lyrics):
@@ -346,17 +352,22 @@ def bag_of_wordize(lyrics):
     :return: dictionary of {'word': word_count}
     """
     # TODO
-    pass
+    tokens = nltk.word_tokenize(lyrics)
+    stems = [stemmer.stem(token) for token in tokens]
+    bag_of_words = collections.Counter(stems)
+    return bag_of_words
 
 
-def create_lyrics(bag_of_words):
+def create_lyrics(song, bag_of_words):
     """
     Creates lyrics objects in the database for the provided bag of words
+    :param song: song object containing lyrics
     :param bag_of_words: bag of words with counts {'word': word_count}
     :return: None
     """
-    # TODO
-    pass
+    for word, count in bag_of_words.iteritems():
+        word_obj, _ = Word.objects.get_or_create(word=word)
+        Lyric.objects.create(word=word_obj, song=song, count=count, is_test=0, mxm_id=song.mxm_tid).save()
 
 
 def browse_playlists():
