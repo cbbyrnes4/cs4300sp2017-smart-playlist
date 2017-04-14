@@ -176,6 +176,8 @@ def get_all_mxm_info(name, artist_name):
     query_string = 'matcher.track.get'
     keywords = {'q_artist': artist_name, 'q_track': name, 'apikey': musixmatch_key}
     response = requests.get(str(Request(query_string, keywords))).json()
+    if response['message']['header']['status_code'] == 404:
+        return None, None, None, None
     response = response['message']['body']['track']
     artist_id = response['artist_id']
     art_name = response['artist_name']
@@ -257,7 +259,8 @@ def build_song(spo_song_info, spo_artist_info, spo_album_info,
     for artist in artists:
         song.artist.add(artist)
     get_audio_features([song])
-    lyricize(song)
+    if mxm_song_id:
+        lyricize(song)
     return song
 
 
@@ -351,7 +354,6 @@ def bag_of_wordize(lyrics):
     :param lyrics: lyrics of a song (str)
     :return: dictionary of {'word': word_count}
     """
-    # TODO
     tokens = nltk.word_tokenize(lyrics)
     stems = [stemmer.stem(token) for token in tokens]
     bag_of_words = collections.Counter(stems)
