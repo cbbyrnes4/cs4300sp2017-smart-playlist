@@ -1,0 +1,13 @@
+To Install Docker: https://docs.docker.com/docker-for-mac/install/
+Once installed, run:
+  docker-compose build
+  docker-compose up -d
+
+  To run one-off bash commands, use
+    docker-compose run frontend $COMMAND
+        i.e. docker-compose run frontend python manage.py migrate
+  To enter a bash terminal,
+    docker exec -i -t cs4300sp2017smartplaylist_frontend_1 bash
+
+Production server is at 52.11.57.68 with username ec2-user
+SSH in using key-pair
