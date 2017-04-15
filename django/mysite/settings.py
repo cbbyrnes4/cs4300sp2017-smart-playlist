@@ -134,11 +134,6 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': '/usr/src/app/logs/debug.log'
         },
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler',
-            'include_html': True
-        }
     },
     'loggers': {
         'django': {
@@ -146,16 +141,5 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
-        'django.error': {
-            'handlers': ['mail_admins'],
-            'level': 'WARNING',
-            'propagate': False
-
-        },
-        'django.template': {
-            'handlers': ['mail_admins'],
-            'level': 'WARNING',
-            'propagate': True
-        }
     }
 }
