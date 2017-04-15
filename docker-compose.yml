@@ -1,17 +1,58 @@
-db:
+version: '2'
+
+services:
+  frontend:
     restart: always
-    image: postgres
+    build: ./django
+    expose:
+      - "8000"
+    depends_on:
+      - db
+    networks:
+      - back-tier
+      - front-tier
+    volumes:
+      - static:/usr/src/app/static
+      - logs:/usr/src/app/logs
+    env_file: web.env
     environment:
-        POSTGRES_DATABASE: smartplaylist_postgres
-        POSTGRES_USER: smartplaylist
-        POSTGRES_PASSWORD: smartplaylist_db_password
-    ports:
+      - DB_IP=db
+    command: bash -c "/usr/local/bin/gunicorn mysite.wsgi:application -w 2 -b :8000 --reload"
+
+  nginx:
+      restart: always
+      build: ./nginx
+      ports:
+       - "80:80"
+      environment:
+        - APP_NAME=web
+      volumes:
+       - static:/www/static
+      volumes_from:
+       - frontend
+      networks:
+       - front-tier
+      depends_on:
+       - frontend
+
+  db:
+      restart: always
+      image: postgres:latest
+      env_file: db.env
+      volumes:
+        - db-data:/var/lib/postgresql/data
+      networks:
+        - back-tier
+      ports:
         - "5432:5432"
-web:
-    restart: always
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000
-    ports:
-        - "8000:8000"
-    links:
-        - db
+
+volumes:
+  db-data:
+    driver: local
+  logs:
+    driver: local
+  static:
+
+networks:
+  front-tier:
+  back-tier:
