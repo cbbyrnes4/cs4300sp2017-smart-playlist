@@ -6,3 +6,4 @@ python-levenshtein==0.12.0
 spotipy==2.4.4
 psycopg2
 numpy==1.12.1
+nltk==3.2.2

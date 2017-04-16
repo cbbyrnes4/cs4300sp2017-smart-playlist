@@ -3,7 +3,7 @@ version: '2'
 services:
   frontend:
     restart: always
-    build: ./django
+    build: ./smartplaylist
     expose:
       - "8000"
     depends_on:
