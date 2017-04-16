@@ -10,7 +10,9 @@ def search(request):
     if request.GET.get('song'):
         song = request.GET.get('song')
         artist = request.GET.get('artist')
-        song = db_builder.build_song_from_name(song, artist)
+        song, created = db_builder.build_song_from_name(song, artist)
+        if created:
+            text_anal.refresh_matrices()
         top_songs = text_anal.get_top_songs(song)
         top_songs = [song for song, score in top_songs]
         paginator = Paginator(top_songs, 10)

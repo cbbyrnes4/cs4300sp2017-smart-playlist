@@ -70,3 +70,12 @@ def cosine_sim(q, d):
     song_vec = song_word[d['song_id'] - 1]
     song_vec = np.append(song_vec, np.zeros(len(q)-len(song_vec)))
     return np.dot(q, song_vec) / (np.linalg.norm(q) * np.linalg.norm(song_vec))
+
+
+def refresh_matrices():
+    global song_count
+    song_count = Song.objects.count() + 1
+    global doc_freq
+    doc_freq = build_df_matrix()
+    global song_word
+    song_word = build_song_term_matrix(song_count, doc_freq)
