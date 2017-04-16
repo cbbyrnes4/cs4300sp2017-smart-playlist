@@ -14,7 +14,7 @@ def build_df_matrix():
     return df
 
 
-def build_song_term_matrix(song_count, doc_freq):
+def build_song_term_matrix(song_count):
     """
     Builds the song-term matrix from the lyrics data in the database
     mat[i, j] is the count of word j-1 in song i-1
@@ -23,14 +23,13 @@ def build_song_term_matrix(song_count, doc_freq):
     lyrics = Lyric.objects.all()
     mat = np.zeros([Song.objects.count(), Word.objects.count()])
     for lyric in lyrics:
-        mat[lyric.song_id - 1, lyric.word_id - 1] = float(lyric.count) * np.log(
-            song_count / doc_freq[lyric.word_id - 1])
+        mat[lyric.song_id - 1, lyric.word_id - 1] = float(lyric.count)
     return mat
 
 
 song_count = Song.objects.count() + 1
 doc_freq = build_df_matrix()
-song_word = build_song_term_matrix(song_count, doc_freq)
+song_word = build_song_term_matrix(song_count)
 
 
 def get_lyrically_overlapping_songs(song):
@@ -67,15 +66,24 @@ def calc_cosine_sims(song, overlapping_songs):
 
 
 def cosine_sim(q, d):
-    song_vec = song_word[d['song_id'] - 1]
+    song_vec = tfidf_vec(d['song_id'])
     song_vec = np.append(song_vec, np.zeros(len(q)-len(song_vec)))
     return np.dot(q, song_vec) / (np.linalg.norm(q) * np.linalg.norm(song_vec))
 
 
+def tfidf_vec(song_id):
+    return song_word[song_id - 1] * np.log(song_count / doc_freq)
+
+
+def tfidf(song_id, word_id):
+    return float(song_word[song_id - 1, word_id - 1]) * np.log(song_count / doc_freq[word_id - 1])
+
+
 def refresh_matrices():
+    # TODO: Make more efficient
     global song_count
     song_count = Song.objects.count() + 1
     global doc_freq
     doc_freq = build_df_matrix()
     global song_word
-    song_word = build_song_term_matrix(song_count, doc_freq)
+    song_word = build_song_term_matrix(song_count)

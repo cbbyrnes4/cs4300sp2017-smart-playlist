@@ -14,7 +14,6 @@ def search(request):
         if created:
             text_anal.refresh_matrices()
         top_songs = text_anal.get_top_songs(song)
-        top_songs = [song for song, score in top_songs]
         paginator = Paginator(top_songs, 10)
         page = request.GET.get('page')
         try:
