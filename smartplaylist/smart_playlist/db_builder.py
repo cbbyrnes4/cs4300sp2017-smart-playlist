@@ -9,6 +9,7 @@ from musixmatch.api import Error, Request
 from musixmatch.track import Track
 from spotipy import SpotifyException
 from spotipy.oauth2 import SpotifyClientCredentials
+from unidecode import unidecode
 
 django.setup()
 
@@ -174,8 +175,8 @@ def get_all_mxm_info(name, artist_name):
     :return: Song ID, (Artist Name, Artist ID), Album ID from musixmatch
     """
     query_string = 'matcher.track.get'
-    keywords = {'q_artist': artist_name.replace(u"\u2018", "'").replace(u"\u2019", "'"),
-                'q_track': name.replace(u"\u2018", "'").replace(u"\u2019", "'"), 'apikey': musixmatch_key}
+    keywords = {'q_artist': unidecode(artist_name),
+                'q_track': unidecode(name), 'apikey': musixmatch_key}
     # response = requests.get(str(Request(query_string, keywords))).json()
     response = requests.get(str(Request(query_string, keywords))).json()
     if response['message']['header']['status_code'] == 404:
