@@ -295,8 +295,10 @@ def mxm_get_lyrics(mxm_id):
     query_string = 'track.lyrics.get'
     keywords = {'track_id': mxm_id, 'apikey': musixmatch_key}
     # response = requests.get(str(Request(query_string, keywords))).json()
-    response = requests.get(str(Request(query_string, keywords))).json()
-    lyrics = response['message']['body']['lyrics']['lyrics_body']
+    response = requests.get(str(Request(query_string, keywords))).json()['message']
+    if response['header']['status_code'] == 404:
+        return ''
+    lyrics = response['body']['lyrics']['lyrics_body']
     return lyrics[:lyrics.find('*')]
 
 
