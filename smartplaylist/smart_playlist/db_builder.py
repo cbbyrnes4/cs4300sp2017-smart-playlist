@@ -174,7 +174,8 @@ def get_all_mxm_info(name, artist_name):
     :return: Song ID, (Artist Name, Artist ID), Album ID from musixmatch
     """
     query_string = 'matcher.track.get'
-    keywords = {'q_artist': artist_name, 'q_track': name, 'apikey': musixmatch_key}
+    keywords = {'q_artist': artist_name.replace(u"\u2018", "'").replace(u"\u2019", "'"),
+                'q_track': name.replace(u"\u2018", "'").replace(u"\u2019", "'"), 'apikey': musixmatch_key}
     # response = requests.get(str(Request(query_string, keywords))).json()
     response = requests.get(unicode(Request(query_string, keywords))).json()
     if response['message']['header']['status_code'] == 404:
@@ -200,6 +201,8 @@ def build_song_from_name(name, artist_name):
         # Song Already Exists
         return Song.objects.get(spotify_id=spo_song_info['id']), False
     mxm_song_id, mxm_artist_name, mxm_artist_id, mxm_album_id = get_all_mxm_info(name, artist_name)
+    if Song.objects.filter(mxm_tid=mxm_song_id).exists():
+        return Song.objects.get(mxm_tid=mxm_song_id), False
     return build_song(spo_song_info, spo_artist_info, spo_album_info,
                       mxm_song_id, mxm_artist_name, mxm_artist_id, mxm_album_id), True
 
@@ -216,6 +219,8 @@ def build_song_from_id(spotify_id):
     spo_song_info, spo_artist_info, spo_album_info = get_all_spotify_info_id(spotify_id)
     mxm_song_id, mxm_artist_name, mxm_artist_id, mxm_album_id = get_all_mxm_info(spo_song_info['name'],
                                                                                  spo_artist_info[0]['name'])
+    if Song.objects.filter(mxm_tid=mxm_song_id).exists():
+        return Song.objects.get(mxm_tid=mxm_song_id), False
     return build_song(spo_song_info, spo_artist_info, spo_album_info, mxm_song_id, mxm_artist_name,
                       mxm_artist_id, mxm_album_id), True
 
@@ -239,6 +244,8 @@ def build_song(spo_song_info, spo_artist_info, spo_album_info,
     for sp_artist in spo_artist_info:
         if Artist.objects.filter(spotify_id=sp_artist['id']).exists():
             artists.append(Artist.objects.get(spotify_id=sp_artist['id']))
+        elif Artist.objects.filter(mxm_id=mxm_artist_id).exists():
+            artists.append(Artist.objects.get(mxm_id=mxm_artist_id))
         else:
             artist = Artist.objects.create(name=sp_artist['name'])
             artist.spotify_id = sp_artist['id']
@@ -249,6 +256,8 @@ def build_song(spo_song_info, spo_artist_info, spo_album_info,
     print("%d artists" % len(artists))
     if Album.objects.filter(spotify_id=spo_album_info['id']).exists():
         album = Album.objects.get(spotify_id=spo_album_info['id'])
+    elif Album.objects.filter(mxm_id=mxm_artist_id).exists():
+        album = Album.objects.get(mxm_id=mxm_album_id)
     else:
         album = Album.objects.create(name=spo_album_info['name'], artist=artists[0])
         album.spotify_id = spo_album_info['id']
