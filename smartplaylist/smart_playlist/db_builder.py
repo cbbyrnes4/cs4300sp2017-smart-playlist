@@ -23,7 +23,7 @@ spotify_secret = '55b73d4d03a44a309973c0693edbeaf9'
 spo_cred_manager = SpotifyClientCredentials(spotify_key, spotify_secret)
 sp = spotipy.Spotify(client_credentials_manager=spo_cred_manager)
 
-from smart_playlist.models import Song, Artist, Lyric, Album, AudioFeatures, Word
+from smart_playlist.models import Song, Artist, Lyric, Album, AudioFeatures, Word, Playlist
 
 
 def search_mxm_for_info(mxm_id):
@@ -192,7 +192,7 @@ def build_song_from_name(name, artist_name):
     Creates the object and fetches related data if the song is not in the database
     :param name: Name of the song (str)
     :param artist_name: Name of the artist (str)
-    :return: Song object representing Song with provided name and artist
+    :return: Song object representing Song with provided name and artist, Whether new song was created (boolean)
     """
     spo_song_info, spo_artist_info, spo_album_info = get_all_spotify_info_name(name, artist_name)
     if Song.objects.filter(spotify_id=spo_song_info['id']).exists():
@@ -208,7 +208,7 @@ def build_song_from_id(spotify_id):
     Returns a Song that matches the spotify ID provided
     Creates the object and fetches related data is the song is not in the database
     :param spotify_id: Spotify ID (str)
-    :return: Song object matching provided Spotify ID
+    :return: Song object matching provided Spotify ID, Whether new song was created (boolean)
     """
     if Song.objects.filter(spotify_id=spotify_id).exists():
         return Song.objects.get(spotify_id=spotify_id), False
@@ -381,35 +381,24 @@ def browse_playlists():
     pass
 
 
-def build_playlist(spotify_playlist_id):
-    """
-    Creates a playlist object and all member songs for the provided spotify playlist ID
-    :param spotify_playlist_id: valid Spotify Playlist ID (str)
-    :return: None
-    """
-    # TODO
-    pass
-
-
 def fetch_category_playlists(spotify_catagory_id):
     """
     Fetches all playlists in the specified category and creates any playlists that don't already exist
     :param spotify_catagory_id: valid spotify category ID (str)
     :return: None
     """
-    for p in sp.category_playlists(category_id=category['id'],limit=50)['playlists']['items']:
+    for p in sp.category_playlists(category_id=spotify_catagory_id,limit=50)['playlists']['items']:
         playlist, _ = Playlist.objects.get_or_create(
             name=p['name'],
             spotify_id=p['id']
         )
 
-        print(p['name'],p['id'])
+        print(p['name'], p['id'])
         print('*' * 20)
-
-        for s in sp.user_playlist_tracks(p['owner']['id'],playlist_id=p['id']):
-            song = build_song_from_id(s['items']['track']['id'])
-            playlist.song.add(song)
+        request = sp.user_playlist_tracks(p['owner']['id'], playlist_id=p['id'])
+        for s in request['items']:
+            song, _ = build_song_from_id(s['track']['id'])
+            playlist.songs.add(song)
             print(song.spotify_id)
-
         print()
 
