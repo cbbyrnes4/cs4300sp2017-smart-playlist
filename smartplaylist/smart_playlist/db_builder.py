@@ -350,16 +350,16 @@ def create_audio_features(song, features):
         song=song,
         acousticness=features['acousticness'] if features['acousticness'] else 0,
         danceability=features['danceability'] if features['danceability'] else 0,
-        duration_ms=features['duration_ms'],
+        duration_ms=features['duration_ms'] if features['duration_ms'] else 0,
         energy=features['energy'] if features['energy'] else 0,
         instrumentalness=features['instrumentalness'] if features['instrumentalness'] else 0,
-        key=features['key'],
+        key=features['key'] if features['key'] else 0,
         liveness=features['liveness'] if features['liveness'] else 0,
-        loudness=features['loudness'],
-        mode=features['mode'],
+        loudness=features['loudness'] if features['loudness'] else 0,
+        mode=features['mode'] if features['mode'] else 0,
         speechiness=features['speechiness'] if features['speechiness'] else 0,
-        tempo=features['tempo'],
-        time_signature=features['time_signature'],
+        tempo=features['tempo'] if features['tempo'] else 0,
+        time_signature=features['time_signature'] if features['time_signature'] else 0,
         valence=features['valence'] if features['valence'] else 0
     )
     af.save()
@@ -428,8 +428,8 @@ def fetch_category_playlists(spotify_catagory_id):
         print('*' * 20)
         request = sp.user_playlist_tracks(p['owner']['id'], playlist_id=p['id'])
         for s in request['items']:
-            song, _ = build_song_from_id(s['track']['id'])
+            song, created = build_song_from_id(s['track']['id'])
             playlist.songs.add(song)
-            print(song.spotify_id)
+            print(song.spotify_id, created)
         print()
 
