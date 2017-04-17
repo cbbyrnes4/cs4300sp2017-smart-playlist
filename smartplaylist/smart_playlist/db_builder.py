@@ -329,9 +329,26 @@ def create_audio_features(song, features):
     :param features: audio features from the Spotify API (dict)
     :return: None
     """
+    if not features:
+        AudioFeatures.objects.create(
+            song=song,
+            acousticness=0,
+            danceability=0,
+            duration_ms=0,
+            energy=0,
+            instrumentalness=0,
+            key=0,
+            liveness=0,
+            loudness=0,
+            mode=0,
+            speechiness=0,
+            tempo=0,
+            time_signature=0,
+            valence=0
+        ).save()
     af = AudioFeatures.objects.create(
         song=song,
-        acousticness=features['acousticness'] if features['acousticness'] else 9,
+        acousticness=features['acousticness'] if features['acousticness'] else 0,
         danceability=features['danceability'] if features['danceability'] else 0,
         duration_ms=features['duration_ms'],
         energy=features['energy'] if features['energy'] else 0,
