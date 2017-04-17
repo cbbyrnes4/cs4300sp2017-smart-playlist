@@ -176,7 +176,7 @@ def get_all_mxm_info(name, artist_name):
     query_string = 'matcher.track.get'
     keywords = {'q_artist': artist_name, 'q_track': name, 'apikey': musixmatch_key}
     # response = requests.get(str(Request(query_string, keywords))).json()
-    response = requests.get(unicode(Request(query_string, keywords))).json()
+    response = requests.get(str(Request(query_string, keywords).encode('utf-8'))).json()
     if response['message']['header']['status_code'] == 404:
         return None, None, None, None
     response = response['message']['body']['track']
@@ -286,7 +286,7 @@ def mxm_get_lyrics(mxm_id):
     query_string = 'track.lyrics.get'
     keywords = {'track_id': mxm_id, 'apikey': musixmatch_key}
     # response = requests.get(str(Request(query_string, keywords))).json()
-    response = requests.get(unicode(Request(query_string, keywords))).json()
+    response = requests.get(str(Request(query_string, keywords).encode('utf-8'))).json()
     lyrics = response['message']['body']['lyrics']['lyrics_body']
     return lyrics[:lyrics.find('*')]
 
