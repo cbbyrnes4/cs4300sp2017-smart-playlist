@@ -330,19 +330,19 @@ def create_audio_features(song, features):
     """
     af = AudioFeatures.objects.create(
         song=song,
-        acousticness=features['acousticness'],
-        danceability=features['danceability'],
+        acousticness=features['acousticness'] if features['acousticness'] else 9,
+        danceability=features['danceability'] if features['danceability'] else 0,
         duration_ms=features['duration_ms'],
-        energy=features['energy'],
-        instrumentalness=features['instrumentalness'],
+        energy=features['energy'] if features['energy'] else 0,
+        instrumentalness=features['instrumentalness'] if features['instrumentalness'] else 0,
         key=features['key'],
-        liveness=features['liveness'],
+        liveness=features['liveness'] if features['liveness'] else 0,
         loudness=features['loudness'],
         mode=features['mode'],
-        speechiness=features['speechiness'],
+        speechiness=features['speechiness'] if features['speechiness'] else 0,
         tempo=features['tempo'],
         time_signature=features['time_signature'],
-        valence=features['valence']
+        valence=features['valence'] if features['valence'] else 0
     )
     af.save()
 
