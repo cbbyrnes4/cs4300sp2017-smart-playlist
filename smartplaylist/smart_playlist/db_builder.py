@@ -245,7 +245,7 @@ def build_song(spo_song_info, spo_artist_info, spo_album_info,
     for sp_artist in spo_artist_info:
         if Artist.objects.filter(spotify_id=sp_artist['id']).exists():
             artists.append(Artist.objects.get(spotify_id=sp_artist['id']))
-        elif Artist.objects.filter(mxm_id=mxm_artist_id).exists():
+        elif mxm_artist_id and Artist.objects.filter(mxm_id=mxm_artist_id).exists():
             artists.append(Artist.objects.get(mxm_id=mxm_artist_id))
         else:
             artist = Artist.objects.create(name=sp_artist['name'])
@@ -257,7 +257,7 @@ def build_song(spo_song_info, spo_artist_info, spo_album_info,
     print("%d artists" % len(artists))
     if Album.objects.filter(spotify_id=spo_album_info['id']).exists():
         album = Album.objects.get(spotify_id=spo_album_info['id'])
-    elif Album.objects.filter(mxm_id=mxm_album_id).exists():
+    elif mxm_album_id and Album.objects.filter(mxm_id=mxm_album_id).exists():
         album = Album.objects.get(mxm_id=mxm_album_id)
     else:
         album = Album.objects.create(name=spo_album_info['name'], artist=artists[0])
