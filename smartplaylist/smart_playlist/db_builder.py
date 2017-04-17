@@ -4,6 +4,7 @@ import django
 import nltk
 import requests
 import spotipy
+import sys
 from django.core.exceptions import ObjectDoesNotExist
 from musixmatch.api import Error, Request
 from musixmatch.track import Track
@@ -17,80 +18,95 @@ django.setup()
 # spotify_id = os.environ.get('SPOTIFY_ID')
 # spotify_secret = os.environ.get('SPOTIFY_SECRET')
 
-musixmatch_key = 'f8192e15050fe5f070871e35d35251a2'
+# musixmatch_key = 'f8192e15050fe5f070871e35d35251a2'
+
 spotify_key = 'd305abf923f54ff0b2bee3ae17af289d'
 spotify_secret = '55b73d4d03a44a309973c0693edbeaf9'
+
+count = 0
+
+musixmatch_apis = ['f8192e15050fe5f070871e35d35251a2','6dc2ce3fb674bcaa0898580c52bbeb97']
+musixmatch_key = musixmatch_apis[count]
 
 spo_cred_manager = SpotifyClientCredentials(spotify_key, spotify_secret)
 sp = spotipy.Spotify(client_credentials_manager=spo_cred_manager)
 
 from smart_playlist.models import Song, Artist, Lyric, Album, AudioFeatures, Word, Playlist
 
+def iterate_key():
+    global count
+    global musixmatch_key
+    
+    if count == len(musixmatch_apis):
+        sys.exit(0)
+    musixmatch_key = musixmatch_apis[count]
+    print("Switched to key: %s" % musixmatch_key)
+    count += 1
 
-def search_mxm_for_info(mxm_id):
-    """
-    Searches the MusixMatch Database and creates a song object if one doesn't
-    already exist for the mxm_id
-    """
-    song_match = Song.objects.filter(mxm_tid=mxm_id)
-    if not song_match.exists():
-        try:
-            track = Track(track_id=mxm_id, apikey=musixmatch_key)
-            artist, _ = Artist.objects.get_or_create(
-                name=track['artist_name'],
-                mxm_id=track['artist_id']
-            )
-            album, _ = Album.objects.get_or_create(
-                name=track['album_name'],
-                mxm_id=track['album_id'],
-                artist=artist
-            )
-            song = Song.objects.create(name=track['track_name'], album=album, mxm_tid=mxm_id)
-            song.save()
-            song.artist.add(artist)
-            print("Added new song %s" % track['track_name'])
-            return True, song
-        except Error:
-            print("Unable to find track with id %d" % mxm_id)
-            return False, None
-    return True, song_match[0]
+# def search_mxm_for_info(mxm_id):
+#     """
+#     Searches the MusixMatch Database and creates a song object if one doesn't
+#     already exist for the mxm_id
+#     """
+#     song_match = Song.objects.filter(mxm_tid=mxm_id)
+#     if not song_match.exists():
+#         try:
+#             track = Track(track_id=mxm_id, apikey=musixmatch_key)
+#             artist, _ = Artist.objects.get_or_create(
+#                 name=track['artist_name'],
+#                 mxm_id=track['artist_id']
+#             )
+#             album, _ = Album.objects.get_or_create(
+#                 name=track['album_name'],
+#                 mxm_id=track['album_id'],
+#                 artist=artist
+#             )
+#             song = Song.objects.create(name=track['track_name'], album=album, mxm_tid=mxm_id)
+#             song.save()
+#             song.artist.add(artist)
+#             print("Added new song %s" % track['track_name'])
+#             return True, song
+#         except Error:
+#             print("Unable to find track with id %d" % mxm_id)
+#             return False, None
+#     return True, song_match[0]
 
 
-def get_song_from_mxm():
-    """
-    Searches through all of the Lyrics in the database and creates song objects for all those not found
-    :return: None
-    """
-    mxm_ids = Lyric.objects.values('mxm_id').distinct()
+# def get_song_from_mxm():
+#     """
+#     Searches through all of the Lyrics in the database and creates song objects for all those not found
+#     :return: None
+#     """
+#     mxm_ids = Lyric.objects.values('mxm_id').distinct()
 
-    print("Found %d songs" % mxm_ids.count())
-    miss_count = 0
-    for mxm_id in mxm_ids:
-        mxm_id = mxm_id['mxm_id']
-        found, song = search_mxm_for_info(mxm_id)
-        if not found:
-            miss_count += 1
-        else:
-            if song.spotify_id is None:
-                spotify_song_id = search_for_spotify_id(song.name, song.artist.name, song.album.name)
-                if spotify_song_id:
-                    song.spotify_id = spotify_song_id
-                    song.save()
-                else:
-                    song.delete()
+#     print("Found %d songs" % mxm_ids.count())
+#     miss_count = 0
+#     for mxm_id in mxm_ids:
+#         mxm_id = mxm_id['mxm_id']
+#         found, song = search_mxm_for_info(mxm_id)
+#         if not found:
+#             miss_count += 1
+#         else:
+#             if song.spotify_id is None:
+#                 spotify_song_id = search_for_spotify_id(song.name, song.artist.name, song.album.name)
+#                 if spotify_song_id:
+#                     song.spotify_id = spotify_song_id
+#                     song.save()
+#                 else:
+#                     song.delete()
 
-    print("Created %d songs in database" % mxm_ids.count())
-    print("Couldn't find %d songs" % miss_count)
+#     print("Created %d songs in database" % mxm_ids.count())
+#     print("Couldn't find %d songs" % miss_count)
 
-    for lyric in Lyric.objects.all():
-        try:
-            song = Song.objects.get(mxm_id=lyric.mxm_id)
-            lyric.song = song
-        except ObjectDoesNotExist:
-            lyric.delete()
-            print("Deleted Lyric with no Musixmatch match")
+#     for lyric in Lyric.objects.all():
+#         try:
+#             song = Song.objects.get(mxm_id=lyric.mxm_id)
+#             lyric.song = song
+#         except ObjectDoesNotExist:
+#             lyric.delete()
+#             print("Deleted Lyric with no Musixmatch match")
 
-    print("Updated %d lyrics" % Lyric.objects.all().count())
+#     print("Updated %d lyrics" % Lyric.objects.all().count())
 
 
 def search_for_spotify_id(name, artist_name, album_name=None):
@@ -179,8 +195,12 @@ def get_all_mxm_info(name, artist_name):
                 'q_track': unidecode(name), 'apikey': musixmatch_key}
     # response = requests.get(str(Request(query_string, keywords))).json()
     response = requests.get(str(Request(query_string, keywords))).json()
-    if response['message']['header']['status_code'] == 404:
+    code = response['message']['header']['status_code']
+    if code == 404:
         return None, None, None, None
+    if code == 401 or code == 402:
+        iterate_key()
+        return get_all_mxm_info(name,artist_name)
     response = response['message']['body']['track']
     artist_id = response['artist_id']
     art_name = response['artist_name']
@@ -296,8 +316,12 @@ def mxm_get_lyrics(mxm_id):
     keywords = {'track_id': mxm_id, 'apikey': musixmatch_key}
     # response = requests.get(str(Request(query_string, keywords))).json()
     response = requests.get(str(Request(query_string, keywords))).json()['message']
-    if response['header']['status_code'] == 404:
+    code = response['header']['status_code']
+    if code == 404:
         return ''
+    if code == 401 or code == 402:
+        iterate_key()
+        return mxm_get_lyrics(mxm_id)
     lyrics = response['body']['lyrics']['lyrics_body']
     return lyrics[:lyrics.find('*')]
 
