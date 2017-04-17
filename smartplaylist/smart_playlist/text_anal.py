@@ -27,7 +27,7 @@ def build_song_term_matrix():
     return mat
 
 
-song_count = 0
+song_count = -1
 doc_freq = np.array([])
 song_word = np.array([[]])
 

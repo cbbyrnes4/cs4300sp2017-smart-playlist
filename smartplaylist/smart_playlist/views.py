@@ -1,4 +1,6 @@
 # Create your views here.
+from bsddb import db
+
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render_to_response
 
@@ -11,7 +13,7 @@ def search(request):
         song = request.GET.get('song')
         artist = request.GET.get('artist')
         song, created = db_builder.build_song_from_name(song, artist)
-        if created:
+        if created or text_anal.song_count == -1:
             text_anal.refresh_matrices()
         top_songs = text_anal.get_top_songs(song)
         paginator = Paginator(top_songs, 10)
