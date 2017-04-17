@@ -12,7 +12,5 @@ if __name__ == '__main__':
 	spo_cred_manager = SpotifyClientCredentials(spotify_key, spotify_secret)
 	sp = spotipy.Spotify(client_credentials_manager=spo_cred_manager)
 
-	global category
-
     for category in sp.categories(limit=50)['categories']['items']:
         db_builder.fetch_category_playlists(category['id'])
