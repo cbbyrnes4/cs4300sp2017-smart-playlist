@@ -397,5 +397,19 @@ def fetch_category_playlists(spotify_catagory_id):
     :param spotify_catagory_id: valid spotify category ID (str)
     :return: None
     """
-    # TODO
-    pass
+    for p in sp.category_playlists(category_id=category['id'],limit=50)['playlists']['items']:
+        playlist, _ = Playlist.objects.get_or_create(
+            name=p['name'],
+            spotify_id=p['id']
+        )
+
+        print(p['name'],p['id'])
+        print('*' * 20)
+
+        for s in sp.user_playlist_tracks(p['owner']['id'],playlist_id=p['id']):
+            song = build_song_from_id(s['items']['track']['id'])
+            playlist.song.add(song)
+            print(song.spotify_id)
+
+        print()
+
