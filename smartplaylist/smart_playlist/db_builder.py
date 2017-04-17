@@ -254,7 +254,6 @@ def build_song(spo_song_info, spo_artist_info, spo_album_info,
                 artist.mxm_id = mxm_artist_id
             artist.save()
             artists.append(artist)
-    print("%d artists" % len(artists))
     if Album.objects.filter(spotify_id=spo_album_info['id']).exists():
         album = Album.objects.get(spotify_id=spo_album_info['id'])
     elif mxm_album_id and Album.objects.filter(mxm_id=mxm_album_id).exists():
@@ -346,6 +345,7 @@ def create_audio_features(song, features):
             time_signature=0,
             valence=0
         ).save()
+        return
     af = AudioFeatures.objects.create(
         song=song,
         acousticness=features['acousticness'] if features['acousticness'] else 0,
