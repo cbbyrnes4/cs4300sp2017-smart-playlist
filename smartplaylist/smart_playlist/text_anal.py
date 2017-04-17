@@ -86,4 +86,4 @@ def refresh_matrices():
     global doc_freq
     doc_freq = build_df_matrix()
     global song_word
-    song_word = build_song_term_matrix(song_count)
+    song_word = build_song_term_matrix()
