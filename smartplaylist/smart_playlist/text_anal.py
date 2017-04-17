@@ -5,8 +5,8 @@ from smart_playlist.models import Lyric, Song, Word
 
 def build_df_matrix():
     """
-    Returns the 
-    :return: 
+    Returns the
+    :return:
     """
     df = np.zeros(Word.objects.count())
     for word in Word.objects.all():
@@ -14,7 +14,7 @@ def build_df_matrix():
     return df
 
 
-def build_song_term_matrix(song_count):
+def build_song_term_matrix():
     """
     Builds the song-term matrix from the lyrics data in the database
     mat[i, j] is the count of word j-1 in song i-1
@@ -27,9 +27,9 @@ def build_song_term_matrix(song_count):
     return mat
 
 
-song_count = Song.objects.count() + 1
-doc_freq = build_df_matrix()
-song_word = build_song_term_matrix(song_count)
+song_count = 0
+doc_freq = np.array([])
+song_word = np.array([[]])
 
 
 def get_lyrically_overlapping_songs(song):
