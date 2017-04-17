@@ -197,10 +197,10 @@ def build_song_from_name(name, artist_name):
     spo_song_info, spo_artist_info, spo_album_info = get_all_spotify_info_name(name, artist_name)
     if Song.objects.filter(spotify_id=spo_song_info['id']).exists():
         # Song Already Exists
-        return Song.objects.get(spotify_id=spotify_key)
+        return Song.objects.get(spotify_id=spo_song_info['id']), False
     mxm_song_id, mxm_artist_name, mxm_artist_id, mxm_album_id = get_all_mxm_info(name, artist_name)
     return build_song(spo_song_info, spo_artist_info, spo_album_info,
-                      mxm_song_id, mxm_artist_name, mxm_artist_id, mxm_album_id)
+                      mxm_song_id, mxm_artist_name, mxm_artist_id, mxm_album_id), True
 
 
 def build_song_from_id(spotify_id):
@@ -211,12 +211,12 @@ def build_song_from_id(spotify_id):
     :return: Song object matching provided Spotify ID
     """
     if Song.objects.filter(spotify_id=spotify_id).exists():
-        return Song.objects.get(spotify_id=spotify_id)
+        return Song.objects.get(spotify_id=spotify_id), False
     spo_song_info, spo_artist_info, spo_album_info = get_all_spotify_info_id(spotify_id)
     mxm_song_id, mxm_artist_name, mxm_artist_id, mxm_album_id = get_all_mxm_info(spo_song_info['name'],
                                                                                  spo_artist_info[0]['name'])
     return build_song(spo_song_info, spo_artist_info, spo_album_info, mxm_song_id, mxm_artist_name,
-                      mxm_artist_id, mxm_album_id)
+                      mxm_artist_id, mxm_album_id), True
 
 
 def build_song(spo_song_info, spo_artist_info, spo_album_info,
