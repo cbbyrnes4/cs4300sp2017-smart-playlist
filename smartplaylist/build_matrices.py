@@ -24,8 +24,6 @@ def write_pickles():
         pickle.dump(good_words, f)
     with open(text_anal.word_to_index_pickle, 'wb') as f:
         pickle.dump(word_to_index, f)
-    with open(text_anal.pmi_pickle, 'wb') as f:
-        pickle.dump(pmi, f)
 
 
 if __name__ == "__main__":
@@ -61,10 +59,6 @@ if __name__ == "__main__":
     for lyric in good_lyrics:
         song_word[lyric.song_id - 1, word_to_index[lyric.word.word]] = float(lyric.count)
     logger.info("Song Word Matrix Created")
-    logger.info("Elapsed Time: %s" % (time.time() - start))
-    tfidf_mat = song_word * np.log(song_count / doc_freq)
-    pmi = np.dot(tfidf_mat, tfidf_mat.T)
-    logger.info("Created PMI Matrix")
     logger.info("Elapsed Time: %s" % (time.time() - start))
     write_pickles()
     logger.info("Wrote pickle files")
