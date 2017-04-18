@@ -1,35 +1,26 @@
+import logging
 import numpy as np
+import time
+import cPickle as pickle
+import os
+
+from django.db.models import Max
 
 from smart_playlist.models import Lyric, Song, Word
 
-
-def build_df_matrix():
-    """
-    Returns the
-    :return:
-    """
-    df = np.zeros(Word.objects.count())
-    for word in Word.objects.all():
-        df[word.id - 1] = word.lyric_set.count() + 1
-    return df
-
-
-def build_song_term_matrix():
-    """
-    Builds the song-term matrix from the lyrics data in the database
-    mat[i, j] is the count of word j-1 in song i-1
-    :return: song-term matrix
-    """
-    lyrics = Lyric.objects.all()
-    mat = np.zeros([Song.objects.count(), Word.objects.count()])
-    for lyric in lyrics:
-        mat[lyric.song_id - 1, lyric.word_id - 1] = float(lyric.count)
-    return mat
-
-
 song_count = -1
 doc_freq = np.array([])
-song_word = np.array([[]])
+song_word = np.array([])
+good_words = None
+word_to_index = {}
+initialized = False
+init_start = 0
+log = logging.getLogger(__name__)
+
+doc_freq_pickle = "/usr/src/app/pickles/doc_freq.pickle"
+song_word_pickle = '/usr/src/app/pickles/song_word.pickle'
+good_words_pickle = '/usr/src/app/pickles/good_words.pickle'
+word_to_index_pickle = '/usr/src/app/pickles/word_to_index.pickle'
 
 
 def get_lyrically_overlapping_songs(song):
@@ -38,7 +29,7 @@ def get_lyrically_overlapping_songs(song):
     :param song: song to match with (Song)
     :return: set of song ids
     """
-    song_words = Lyric.objects.filter(song=song).values('word').distinct()
+    song_words = Lyric.objects.filter(song=song, word__in=good_words).values('word').distinct()
     lyrics = Lyric.objects.filter(word__in=song_words)
     songs_set = lyrics.exclude(song=song).values('song_id').distinct()
     return songs_set
@@ -75,15 +66,65 @@ def tfidf_vec(song_id):
     return song_word[song_id - 1] * np.log(song_count / doc_freq)
 
 
-def tfidf(song_id, word_id):
-    return float(song_word[song_id - 1, word_id - 1]) * np.log(song_count / doc_freq[word_id - 1])
-
-
-def refresh_matrices():
+def build_matrices():
     # TODO: Make more efficient
-    global song_count
-    song_count = Song.objects.count() + 1
-    global doc_freq
-    doc_freq = build_df_matrix()
-    global song_word
-    song_word = build_song_term_matrix()
+    global song_count, doc_freq, song_word, good_words, word_to_index, initialized, init_start
+    init_start = time.time()
+    song_count = Song.objects.count()
+    log.info("Songs: %s" % song_count)
+    log.info("Total Number of Words %s" % Word.objects.count())
+    if os.path.exists(good_words_pickle):
+        with open(good_words_pickle, 'rb') as f:
+            good_words = pickle.load(f)
+    else:
+        max_thresh = song_count * 0.9
+        min_thresh = 10
+        good_words = Word.objects.filter(lyric__count__gt=min_thresh)\
+            .filter(lyric__count__lt=max_thresh).distinct('word')
+    log.info("Number of Good Words: %s" % good_words.count())
+    if os.path.exists(word_to_index_pickle):
+        with open(word_to_index_pickle, 'rb') as f:
+            word_to_index = pickle.load(f)
+    else:
+        for index, word in enumerate(good_words):
+            word_to_index[word.word] = index
+    log.info("Word To Index Map Created")
+    if os.path.exists(doc_freq_pickle):
+        with open(doc_freq_pickle, 'rb') as f:
+            doc_freq = pickle.load(f)
+    else:
+        doc_freq = np.zeros(good_words.count())
+        for word in good_words:
+            doc_freq[word_to_index[word.word]] = word.lyric_set.count() + 1
+    log.info("Doc Freq Matrix Created")
+    if os.path.exists(song_word_pickle):
+        with open(song_word_pickle, 'rb') as f:
+            song_word = pickle.load(f)
+    else:
+        lyrics = Lyric.objects.all()
+        song_word = np.zeros([Song.objects.all().aggregate(Max('id'))['id__max'], good_words.count()])
+        good_lyrics = lyrics.filter(word__in=good_words)
+        log.info("Building Matrix for %s lyrics" % good_lyrics.count())
+        for lyric in good_lyrics:
+            song_word[lyric.song_id - 1, word_to_index[lyric.word.word]] = float(lyric.count)
+    log.info("Song Word Matrix Created")
+    end = time.time()
+    log.info("Elapsed time: %s" % (end-init_start))
+    write_pickles()
+    initialized = True
+
+
+def write_pickles():
+    with open(doc_freq_pickle, 'wb') as f:
+        pickle.dump(doc_freq, f)
+    with open(song_word_pickle, 'wb') as f:
+        pickle.dump(song_word, f)
+    with open(good_words_pickle, 'wb') as f:
+        pickle.dump(good_words, f)
+    with open(word_to_index_pickle, 'wb') as f:
+        pickle.dump(word_to_index, f)
+
+
+def refresh_matrices(song):
+    # TODO: Make more efficient
+    pass

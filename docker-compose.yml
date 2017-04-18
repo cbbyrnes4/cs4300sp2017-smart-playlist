@@ -14,6 +14,7 @@ services:
     volumes:
       - static:/usr/src/app/static
       - logs:/usr/src/app/logs
+      - pickles:/usr/src/app/pickles
     env_file: web.env
     environment:
       - DB_IP=db
@@ -50,6 +51,8 @@ volumes:
   db-data:
     driver: local
   logs:
+    driver: local
+  pickles:
     driver: local
   static:
 
