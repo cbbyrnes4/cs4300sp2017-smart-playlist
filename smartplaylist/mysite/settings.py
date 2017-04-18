@@ -131,7 +131,9 @@ LOGGING = {
     'formatters': {
         'verbose': {
             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-        },
+        }, 'simple': {
+            'format': '%(asctime)s %(module)s %(message)s'
+        }
     },
     'handlers': {
         'file': {
@@ -140,10 +142,15 @@ LOGGING = {
             'filename': '/usr/src/app/logs/debug.log',
             'formatter': 'verbose'
         },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        }
     },
     'loggers': {
         '': {
-            'handlers': ['file'],
+            'handlers': ['file', 'console'],
             'level': 'INFO',
             'propagate': True,
         },
