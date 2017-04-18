@@ -1,9 +1,6 @@
 # Create your views here.
-import threading
-import time
 
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.http import HttpResponse
 from django.shortcuts import render_to_response
 
 from smart_playlist import db_builder, text_anal
@@ -12,9 +9,7 @@ from smart_playlist import db_builder, text_anal
 def search(request):
     output = ''
     if not text_anal.initialized:
-        if text_anal.init_start == 0:
-            threading.Thread(target=text_anal.build_matrices).start()
-        return HttpResponse("Initializing. Time Elapsed: %s" % (time.time() - text_anal.init_start))
+        text_anal.build_matrices()
     if request.GET.get('song'):
         song = request.GET.get('song')
         artist = request.GET.get('artist')

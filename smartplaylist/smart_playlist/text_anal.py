@@ -1,9 +1,9 @@
-import logging
-import numpy as np
-import time
 import cPickle as pickle
+import logging
 import os
+import time
 
+import numpy as np
 from django.db.models import Max
 
 from smart_playlist.models import Lyric, Song, Word
@@ -15,7 +15,7 @@ good_words = None
 word_to_index = {}
 initialized = False
 init_start = 0
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 doc_freq_pickle = "/usr/src/app/pickles/doc_freq.pickle"
 song_word_pickle = '/usr/src/app/pickles/song_word.pickle'
@@ -71,8 +71,8 @@ def build_matrices():
     global song_count, doc_freq, song_word, good_words, word_to_index, initialized, init_start
     init_start = time.time()
     song_count = Song.objects.count()
-    log.info("Songs: %s" % song_count)
-    log.info("Total Number of Words %s" % Word.objects.count())
+    logger.info("Songs: %s" % song_count)
+    logger.info("Total Number of Words %s" % Word.objects.count())
     if os.path.exists(good_words_pickle):
         with open(good_words_pickle, 'rb') as f:
             good_words = pickle.load(f)
@@ -81,14 +81,14 @@ def build_matrices():
         min_thresh = 10
         good_words = Word.objects.filter(lyric__count__gt=min_thresh)\
             .filter(lyric__count__lt=max_thresh).distinct('word')
-    log.info("Number of Good Words: %s" % good_words.count())
+    logger.info("Number of Good Words: %s" % good_words.count())
     if os.path.exists(word_to_index_pickle):
         with open(word_to_index_pickle, 'rb') as f:
             word_to_index = pickle.load(f)
     else:
         for index, word in enumerate(good_words):
             word_to_index[word.word] = index
-    log.info("Word To Index Map Created")
+    logger.info("Word To Index Map Created")
     if os.path.exists(doc_freq_pickle):
         with open(doc_freq_pickle, 'rb') as f:
             doc_freq = pickle.load(f)
@@ -96,7 +96,7 @@ def build_matrices():
         doc_freq = np.zeros(good_words.count())
         for word in good_words:
             doc_freq[word_to_index[word.word]] = word.lyric_set.count() + 1
-    log.info("Doc Freq Matrix Created")
+    logger.info("Doc Freq Matrix Created")
     if os.path.exists(song_word_pickle):
         with open(song_word_pickle, 'rb') as f:
             song_word = pickle.load(f)
@@ -104,12 +104,12 @@ def build_matrices():
         lyrics = Lyric.objects.all()
         song_word = np.zeros([Song.objects.all().aggregate(Max('id'))['id__max'], good_words.count()])
         good_lyrics = lyrics.filter(word__in=good_words)
-        log.info("Building Matrix for %s lyrics" % good_lyrics.count())
+        logger.info("Building Matrix for %s lyrics" % good_lyrics.count())
         for lyric in good_lyrics:
             song_word[lyric.song_id - 1, word_to_index[lyric.word.word]] = float(lyric.count)
-    log.info("Song Word Matrix Created")
+    logger.info("Song Word Matrix Created")
     end = time.time()
-    log.info("Elapsed time: %s" % (end-init_start))
+    logger.info("Elapsed time: %s" % (end - init_start))
     write_pickles()
     initialized = True
 
