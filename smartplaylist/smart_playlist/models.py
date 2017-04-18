@@ -23,8 +23,8 @@ class Song(models.Model):
     name = models.CharField(max_length=200)
     artist = models.ManyToManyField(Artist)
     album = models.ForeignKey(Album)
-    mxm_tid = models.IntegerField(unique=True, null=True)
-    spotify_id = models.CharField(max_length=30, null=True, unique=True)
+    mxm_tid = models.IntegerField(unique=True, null=True, db_index=True)
+    spotify_id = models.CharField(max_length=30, null=True, unique=True, db_index=True)
 
     def __str__(self):
         return '%s by: %s' % (self.name, ','.join(a.name for a in self.artist.all()))
@@ -53,9 +53,9 @@ class Word(models.Model):
 
 
 class Lyric(models.Model):
-    song = models.ForeignKey(Song, null=True)
+    song = models.ForeignKey(Song, null=True, db_index=True)
     mxm_id = models.IntegerField()
-    word = models.ForeignKey(Word)
+    word = models.ForeignKey(Word, db_index=True)
     count = models.IntegerField()
     is_test = models.IntegerField()
 
