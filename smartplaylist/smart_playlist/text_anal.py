@@ -41,8 +41,8 @@ def get_cosine_top_songs(song):
 
 
 def get_pmi_top_songs(song):
-    top_indices = np.argmax(pmi[song.id - 1])[::-1][1:]
-    return [(Song.objects.get(id=top_indices[i] + 1), pmi[song.id - 1][i]) for i in top_indices]
+    top_indices = np.argsort(pmi[song.id - 1])[::-1][1:]
+    return [(Song.objects.get(id=i + 1), pmi[song.id - 1][i]) for i in top_indices if pmi[song.id - 1][i] > 0]
 
 
 def calc_cosine_sims(song, overlapping_songs):
