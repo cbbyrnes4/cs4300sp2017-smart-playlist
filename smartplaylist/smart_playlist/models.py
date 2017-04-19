@@ -27,7 +27,7 @@ class Song(models.Model):
     spotify_id = models.CharField(max_length=30, null=True, unique=True, db_index=True)
 
     def __str__(self):
-        return '%s by: %s' % (self.name, ','.join(a.name for a in self.artist.all()))
+        return '%s by: %s' % (self.name, ', '.join(a.name for a in self.artist.all()))
 
 
 class AudioFeatures(models.Model):

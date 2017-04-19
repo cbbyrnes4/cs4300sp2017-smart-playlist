@@ -32,7 +32,7 @@ def search(request):
             output = paginator.page(paginator.num_pages)
         # TODO Figure out how to display utf-8 chars
         songs = [unidecode(Song.objects.get(id=i).__str__()) for i, score in output]
-        query = "%s: %s" % (song, artist)
+        query = unidecode(song.__str__())
 
     return render_to_response('smart_playlist/base.html',
                               {'songs': songs,
