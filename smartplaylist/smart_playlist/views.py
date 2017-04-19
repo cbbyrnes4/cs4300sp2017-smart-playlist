@@ -1,6 +1,5 @@
 # Create your views here.
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.http import HttpResponse
 from django.shortcuts import render_to_response
 
 from smart_playlist import db_builder, text_anal
@@ -9,7 +8,7 @@ from smart_playlist import db_builder, text_anal
 def search(request):
     output = ''
     if not text_anal.initialized:
-        return HttpResponse("Loading Data")
+        text_anal.load_matrices()
     if request.GET.get('song'):
         song = request.GET.get('song')
         artist = request.GET.get('artist')

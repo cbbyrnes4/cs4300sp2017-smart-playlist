@@ -1,5 +1,6 @@
 import cPickle as pickle
 import logging
+import os
 import sys
 import time
 
@@ -16,20 +17,28 @@ logger = logging.getLogger(__name__)
 
 
 def write_pickles():
+    global doc_freq, song_word, good_words, word_to_index
+    if os.path.exists(text_anal.doc_freq_pickle):
+        os.remove(text_anal.doc_freq_pickle)
     with open(text_anal.doc_freq_pickle, 'wb') as f:
         pickle.dump(doc_freq, f)
+    if os.path.exists(text_anal.song_word_pickle):
+        os.remove(text_anal.song_word_pickle)
     with open(text_anal.song_word_pickle, 'wb') as f:
         pickle.dump(song_word, f)
+    if os.path.exists(text_anal.word_to_index_pickle):
+        os.remove(text_anal.good_words_pickle)
     with open(text_anal.good_words_pickle, 'wb') as f:
         pickle.dump(good_words, f)
+    if os.path.exists(text_anal.word_to_index_pickle):
+        os.remove(text_anal.word_to_index_pickle)
     with open(text_anal.word_to_index_pickle, 'wb') as f:
         pickle.dump(word_to_index, f)
 
 
-if __name__ == "__main__":
+def build_matrices():
     # TODO: Make more efficient
-    logger.info("Starting Debug Trace")
-    # pydevd.settrace("192.168.1.128", port=3000)
+    global doc_freq, song_word, good_words, word_to_index
     start = time.time()
     song_count = Song.objects.count()
     logger.info("Songs: %s" % song_count)
@@ -63,4 +72,7 @@ if __name__ == "__main__":
     write_pickles()
     logger.info("Wrote pickle files")
     logger.info("Elapsed Time: %s" % (time.time() - start))
+
+if __name__ == "__main__":
+    build_matrices()
     sys.exit(1)
