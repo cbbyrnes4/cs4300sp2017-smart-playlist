@@ -4,6 +4,13 @@
         <link rel="stylesheet" href="{% static "smart_playlist/bootstrap.min.css" %}">
         <link rel="stylesheet" href="{% static "smart_playlist/main.css" %}">
         <script type="text/javascript" src="http://tracking.musixmatch.com/t1.0/AMa6hJCIEzn1v8RuOP"></script>
+        <title>
+            {% if query %}
+                {{ query }}
+            {% else %}
+                Smart Playlist
+            {% endif %}
+        </title>
     </head>
     
     <body>
