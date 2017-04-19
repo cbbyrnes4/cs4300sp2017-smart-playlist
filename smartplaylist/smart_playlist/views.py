@@ -3,10 +3,12 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render_to_response
 
 from smart_playlist import db_builder, text_anal
+from smart_playlist.models import Song
 
 
 def search(request):
     output = ''
+    songs = None
     if not text_anal.initialized:
         text_anal.load_matrices()
     if request.GET.get('song'):
@@ -26,8 +28,10 @@ def search(request):
             output = paginator.page(1)
         except EmptyPage:
             output = paginator.page(paginator.num_pages)
+        songs = [Song.objects.get(id=i) for i, score in output]
 
     return render_to_response('smart_playlist/base.html',
-                              {'output': output,
+                              {'songs': songs,
+                               'output': output,
                                'magic_url': request.get_full_path(),
                                })
