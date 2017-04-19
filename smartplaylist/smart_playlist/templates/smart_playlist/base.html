@@ -1,24 +1,20 @@
 <html>
     <head>
-        <link rel="stylesheet" href="/static/bootstrap.min.css">
-        <link rel="stylesheet" href="/static/main.css">
+        {% load static %}
+        <link rel="stylesheet" href="{% static "smart_playlist/bootstrap.min.css" %}">
+        <link rel="stylesheet" href="{% static "smart_playlist/main.css" %}">
+        <script type="text/javascript" src="http://tracking.musixmatch.com/t1.0/AMa6hJCIEzn1v8RuOP"></script>
     </head>
     
     <body>
-        <!-- TODO: Please change lines 10 and 11 according to your actual project name and student names-->
         <div class="topcorner">
-            <p>Project Name</p>
-            <p>Student Name (NetID)</p>
+            <p>Smart Playlist</p>
+            <p></p>
         </div>
         
         <form class="form-inline global-search" method='GET'>
-            <h1 style="font-size: 55px; font-family:Futura; color: #4285F4">
-                C
-                <font color=#EA4335>S</font>
-                <font color=#FBBC05>4</font>
-                3
-                <font color=#34A853>0</font>
-                <font color=#EA4335>0</font>
+            <h1 style="font-size: 55px; font-family:Futura,serif">
+                Smart Playlist Generator
             </h1>
             
             <br><br>
@@ -44,7 +40,7 @@
                     
                     <!-- Showing the page numbers in Html Page -->
                     <span class="current">
-                    Page _{{ output.number }}_ of _{{ output.paginator.num_pages }}_
+                    Page {{ output.number }} of {{ output.paginator.num_pages }}
                     </span>
                     
                     {% if output.has_next %}
@@ -55,5 +51,3 @@
         </div>
     </body>
 </html>
-Contact GitHub API Training Shop Blog About
-© 2017 GitHub, Inc. Terms Privacy Security Status Help

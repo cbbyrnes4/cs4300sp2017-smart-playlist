@@ -83,6 +83,9 @@ def load_matrices():
             song_word = pickle.load(f)
         tfidf_mat = song_word * np.log(song_count / doc_freq)
         pmi = np.dot(tfidf_mat, tfidf_mat.T)
+        norm = np.linalg.norm(song_word, axis=1)
+        pmi /= norm
+        pmi = (pmi.T / norm).T
         initialized = True
         logger.info("Loaded Matrices")
     except IOError as e:
