@@ -5,18 +5,11 @@ import django
 import nltk
 import requests
 import spotipy
-from musixmatch.api import Request
 from spotipy import SpotifyException
 from spotipy.oauth2 import SpotifyClientCredentials
 from unidecode import unidecode
 
 django.setup()
-
-# musixmatch_key = os.environ.get('MUSIXMATCH_KEY')
-# spotify_id = os.environ.get('SPOTIFY_ID')
-# spotify_secret = os.environ.get('SPOTIFY_SECRET')
-
-# musixmatch_key = 'f8192e15050fe5f070871e35d35251a2'
 
 spotify_key = 'd305abf923f54ff0b2bee3ae17af289d'
 spotify_secret = '55b73d4d03a44a309973c0693edbeaf9'
@@ -121,19 +114,28 @@ def get_mxm_id(name, artist_name):
     return song_id
 
 
+def musix_match_request(query_string, keywords):
+    url = "http://api.musixmatch.com/ws/1.1/"
+    url += query_string
+    url += "?"
+    for key, value in keywords.iteritems():
+        url += "%s=%s&" % (key, value)
+    return url
+
+
 def get_all_mxm_info(name, artist_name):
     """
     Returns all of the musixmatch ids for a given song
     Used to match songs in database with musixmatch
     :param name: Name of the song (str)
     :param artist_name: Name of the artist (str)
-    :return: Song ID, (Artist Name, Artist ID), Album ID from musixmatch
+    :return: Song ID, Artist Name, Artist ID, Album ID from musixmatch
     """
     query_string = 'matcher.track.get'
     keywords = {'q_artist': unidecode(artist_name),
                 'q_track': unidecode(name), 'apikey': musixmatch_key}
     # response = requests.get(str(Request(query_string, keywords))).json()
-    response = requests.get(str(Request(query_string, keywords))).json()
+    response = requests.get(musix_match_request(query_string, keywords)).json()
     code = response['message']['header']['status_code']
     if code == 404:
         return None, None, None, None
@@ -254,7 +256,7 @@ def mxm_get_lyrics(mxm_id):
     query_string = 'track.lyrics.get'
     keywords = {'track_id': mxm_id, 'apikey': musixmatch_key}
     # response = requests.get(str(Request(query_string, keywords))).json()
-    response = requests.get(str(Request(query_string, keywords))).json()['message']
+    response = requests.get(musix_match_request(query_string, keywords)).json()['message']
     code = response['header']['status_code']
     if code == 404:
         return ''
