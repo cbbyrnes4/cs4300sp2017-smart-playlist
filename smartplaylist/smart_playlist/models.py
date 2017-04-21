@@ -65,5 +65,5 @@ class Lyric(models.Model):
 
 class Playlist(models.Model):
     name = models.CharField(max_length=255)
-    spotify_id = models.CharField(max_length=30)
+    spotify_id = models.CharField(max_length=30, unique=True)
     songs = models.ManyToManyField(Song)

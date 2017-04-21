@@ -376,9 +376,10 @@ def fetch_category_playlists(spotify_catagory_id):
     """
     for p in sp.category_playlists(category_id=spotify_catagory_id, limit=50)['playlists']['items']:
         playlist, _ = Playlist.objects.get_or_create(
-            name=p['name'],
             spotify_id=p['id']
         )
+        playlist.name = p['name']
+        playlist.save()
 
         print(p['name'], p['id'])
         print('*' * 20)
