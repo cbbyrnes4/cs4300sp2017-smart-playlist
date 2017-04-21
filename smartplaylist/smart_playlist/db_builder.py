@@ -1,13 +1,11 @@
 import collections
+import sys
 
 import django
 import nltk
 import requests
 import spotipy
-import sys
-from django.core.exceptions import ObjectDoesNotExist
-from musixmatch.api import Error, Request
-from musixmatch.track import Track
+from musixmatch.api import Request
 from spotipy import SpotifyException
 from spotipy.oauth2 import SpotifyClientCredentials
 from unidecode import unidecode
@@ -25,7 +23,12 @@ spotify_secret = '55b73d4d03a44a309973c0693edbeaf9'
 
 count = 0
 
-musixmatch_apis = ['f8192e15050fe5f070871e35d35251a2','6dc2ce3fb674bcaa0898580c52bbeb97']
+musixmatch_apis = ['f8192e15050fe5f070871e35d35251a2',
+                   '6dc2ce3fb674bcaa0898580c52bbeb97',
+                   'd198ba69ceda17a0a128870d78fadd75',
+                   '6939e794918f7163c999bff1bf83f242',
+                   'f5b321a431ff987944ace275b43ed75c',
+                   'd0fbf76e5e8702cbc18eb0767c5163a6']
 musixmatch_key = musixmatch_apis[count]
 
 spo_cred_manager = SpotifyClientCredentials(spotify_key, spotify_secret)
@@ -33,80 +36,16 @@ sp = spotipy.Spotify(client_credentials_manager=spo_cred_manager)
 
 from smart_playlist.models import Song, Artist, Lyric, Album, AudioFeatures, Word, Playlist
 
+
 def iterate_key():
     global count
     global musixmatch_key
-    
+
     if count == len(musixmatch_apis):
         sys.exit(0)
+    count += 1
     musixmatch_key = musixmatch_apis[count]
     print("Switched to key: %s" % musixmatch_key)
-    count += 1
-
-# def search_mxm_for_info(mxm_id):
-#     """
-#     Searches the MusixMatch Database and creates a song object if one doesn't
-#     already exist for the mxm_id
-#     """
-#     song_match = Song.objects.filter(mxm_tid=mxm_id)
-#     if not song_match.exists():
-#         try:
-#             track = Track(track_id=mxm_id, apikey=musixmatch_key)
-#             artist, _ = Artist.objects.get_or_create(
-#                 name=track['artist_name'],
-#                 mxm_id=track['artist_id']
-#             )
-#             album, _ = Album.objects.get_or_create(
-#                 name=track['album_name'],
-#                 mxm_id=track['album_id'],
-#                 artist=artist
-#             )
-#             song = Song.objects.create(name=track['track_name'], album=album, mxm_tid=mxm_id)
-#             song.save()
-#             song.artist.add(artist)
-#             print("Added new song %s" % track['track_name'])
-#             return True, song
-#         except Error:
-#             print("Unable to find track with id %d" % mxm_id)
-#             return False, None
-#     return True, song_match[0]
-
-
-# def get_song_from_mxm():
-#     """
-#     Searches through all of the Lyrics in the database and creates song objects for all those not found
-#     :return: None
-#     """
-#     mxm_ids = Lyric.objects.values('mxm_id').distinct()
-
-#     print("Found %d songs" % mxm_ids.count())
-#     miss_count = 0
-#     for mxm_id in mxm_ids:
-#         mxm_id = mxm_id['mxm_id']
-#         found, song = search_mxm_for_info(mxm_id)
-#         if not found:
-#             miss_count += 1
-#         else:
-#             if song.spotify_id is None:
-#                 spotify_song_id = search_for_spotify_id(song.name, song.artist.name, song.album.name)
-#                 if spotify_song_id:
-#                     song.spotify_id = spotify_song_id
-#                     song.save()
-#                 else:
-#                     song.delete()
-
-#     print("Created %d songs in database" % mxm_ids.count())
-#     print("Couldn't find %d songs" % miss_count)
-
-#     for lyric in Lyric.objects.all():
-#         try:
-#             song = Song.objects.get(mxm_id=lyric.mxm_id)
-#             lyric.song = song
-#         except ObjectDoesNotExist:
-#             lyric.delete()
-#             print("Deleted Lyric with no Musixmatch match")
-
-#     print("Updated %d lyrics" % Lyric.objects.all().count())
 
 
 def search_for_spotify_id(name, artist_name, album_name=None):
@@ -200,7 +139,7 @@ def get_all_mxm_info(name, artist_name):
         return None, None, None, None
     if code == 401 or code == 402:
         iterate_key()
-        return get_all_mxm_info(name,artist_name)
+        return get_all_mxm_info(name, artist_name)
     response = response['message']['body']['track']
     artist_id = response['artist_id']
     art_name = response['artist_name']
@@ -427,22 +366,13 @@ def create_lyrics(song, bag_of_words):
         Lyric.objects.create(word=word_obj, song=song, count=count, is_test=0, mxm_id=song.mxm_tid).save()
 
 
-def browse_playlists():
-    """
-    Browses all the Spotify Categories and creates playlists that haven't been created yet
-    :return: None
-    """
-    # TODO
-    pass
-
-
 def fetch_category_playlists(spotify_catagory_id):
     """
     Fetches all playlists in the specified category and creates any playlists that don't already exist
     :param spotify_catagory_id: valid spotify category ID (str)
     :return: None
     """
-    for p in sp.category_playlists(category_id=spotify_catagory_id,limit=50)['playlists']['items']:
+    for p in sp.category_playlists(category_id=spotify_catagory_id, limit=50)['playlists']['items']:
         playlist, _ = Playlist.objects.get_or_create(
             name=p['name'],
             spotify_id=p['id']
@@ -452,8 +382,11 @@ def fetch_category_playlists(spotify_catagory_id):
         print('*' * 20)
         request = sp.user_playlist_tracks(p['owner']['id'], playlist_id=p['id'])
         for s in request['items']:
-            song, created = build_song_from_id(s['track']['id'])
-            playlist.songs.add(song)
-            print(song.spotify_id, created)
+            if s['track']['id']:
+                song, created = build_song_from_id(s['track']['id'])
+                playlist.songs.add(song)
+                print(song.spotify_id, created)
+            else:
+                print("No Song ID")
         print()
 
