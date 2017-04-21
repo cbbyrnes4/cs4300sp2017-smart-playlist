@@ -1,5 +1,6 @@
 import cPickle as pickle
 import logging
+import time
 
 import numpy as np
 
@@ -71,16 +72,28 @@ def tfidf_vec(song_id):
 def load_matrices():
     global song_count, doc_freq, song_word, good_words, word_to_index, pmi, initialized
     logger.info("Loading Matrices")
+    start = time.time()
     song_count = Song.objects.count()
     try:
         with open(good_words_pickle, 'rb') as f:
             good_words = pickle.load(f)
+        temp = time.time()
+        logger.info("Loaded Good Words in %s" % (temp - start))
+        start = temp
         with open(word_to_index_pickle, 'rb') as f:
             word_to_index = pickle.load(f)
+        temp = time.time()
+        logger.info("Loaded Word Index in %s" % (temp - start))
+        start = temp
         with open(doc_freq_pickle, 'rb') as f:
             doc_freq = pickle.load(f)
+        temp = time.time()
+        logger.info("Loaded Document Frequency in %s" % (temp - start))
+        start = temp
         with open(song_word_pickle, 'rb') as f:
             song_word = pickle.load(f)
+        temp = time.time()
+        logger.info("Loaded Song Word in %s" % (temp - start))
         tfidf_mat = song_word * np.log(song_count / doc_freq)
         pmi = np.dot(tfidf_mat, tfidf_mat.T)
         norm = np.linalg.norm(song_word, axis=1)

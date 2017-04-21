@@ -7,3 +7,4 @@ psycopg2
 numpy==1.12.1
 nltk==3.2.2
 unidecode==0.4.20
+scipy==0.18.1

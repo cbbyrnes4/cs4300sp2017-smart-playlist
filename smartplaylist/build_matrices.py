@@ -10,14 +10,14 @@ from django.db.models import Max
 
 django.setup()
 
-from smart_playlist import text_anal
-from smart_playlist.models import Song, Word, Lyric
+from smart_playlist import text_anal, af_clust
+from smart_playlist.models import Song, Word, Lyric, AudioFeatures
 
 logger = logging.getLogger(__name__)
 
 
 def write_pickles():
-    global doc_freq, song_word, good_words, word_to_index
+    global doc_freq, song_word, good_words, word_to_index, audio_matrix
     if os.path.exists(text_anal.doc_freq_pickle):
         os.remove(text_anal.doc_freq_pickle)
     with open(text_anal.doc_freq_pickle, 'wb') as f:
@@ -34,11 +34,15 @@ def write_pickles():
         os.remove(text_anal.word_to_index_pickle)
     with open(text_anal.word_to_index_pickle, 'wb') as f:
         pickle.dump(word_to_index, f)
+    if os.path.exists(af_clust.af_pickle):
+        os.remove(af_clust.af_pickle)
+    with open(af_clust.af_pickle, 'wb') as f:
+        pickle.dump(audio_matrix, f)
 
 
 def build_matrices():
     # TODO: Make more efficient
-    global doc_freq, song_word, good_words, word_to_index
+    global doc_freq, song_word, good_words, word_to_index, audio_matrix
     start = time.time()
     song_count = Song.objects.count()
     logger.info("Songs: %s" % song_count)
@@ -69,6 +73,11 @@ def build_matrices():
         song_word[lyric.song_id - 1, word_to_index[lyric.word.word]] = float(lyric.count)
     logger.info("Song Word Matrix Created")
     logger.info("Elapsed Time: %s" % (time.time() - start))
+    audio_matrix = np.zeros((Song.objects.all().aggregate(Max('id'))['id__max'], 7))
+    audio_features = AudioFeatures.objects.all()
+    good_features = ['danceability', 'energy', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence']
+    for af in audio_features:
+        audio_matrix[af.song_id - 1] = [val for key, val in af if key in good_features]
     write_pickles()
     logger.info("Wrote pickle files")
     logger.info("Elapsed Time: %s" % (time.time() - start))

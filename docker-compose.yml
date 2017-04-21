@@ -2,7 +2,7 @@ version: '2'
 
 services:
   frontend:
-    restart: always
+    restart: on-failure
     build: ./smartplaylist
     expose:
       - "8000"

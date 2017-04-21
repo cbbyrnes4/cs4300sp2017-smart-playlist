@@ -47,6 +47,11 @@ class AudioFeatures(models.Model):
     duration_ms = models.IntegerField()
     time_signature = models.IntegerField()
 
+    def __iter__(self):
+        for field_name in self._meta.get_all_field_names():
+            value = getattr(self, field_name, None)
+            yield (field_name, value)
+
 
 class Word(models.Model):
     word = models.CharField(max_length=200)
