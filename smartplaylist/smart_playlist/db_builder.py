@@ -385,11 +385,11 @@ def fetch_category_playlists(spotify_catagory_id):
         print('*' * 20)
         request = sp.user_playlist_tracks(p['owner']['id'], playlist_id=p['id'])
         for s in request['items']:
-            if s and s['track']['id']:
+            try:
                 song, created = build_song_from_id(s['track']['id'])
                 playlist.songs.add(song)
                 print(song.spotify_id, created)
-            else:
-                print("No Song ID")
+            except Exception as e:
+                print(e)
         print()
 
