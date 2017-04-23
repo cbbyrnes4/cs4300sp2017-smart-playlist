@@ -1,25 +1,11 @@
-import cPickle as pickle
 import logging
-import time
 
 import numpy as np
 
-from smart_playlist.models import Lyric, Song
+import matrices
+from smart_playlist.models import Lyric
 
-song_count = -1
-doc_freq = np.array([])
-song_word = np.array([])
-good_words = None
-word_to_index = {}
-pmi = np.array([[]])
-initialized = False
 logger = logging.getLogger(__name__)
-
-doc_freq_pickle = "/usr/src/app/pickles/doc_freq.pickle"
-song_word_pickle = '/usr/src/app/pickles/song_word.pickle'
-good_words_pickle = '/usr/src/app/pickles/good_words.pickle'
-word_to_index_pickle = '/usr/src/app/pickles/word_to_index.pickle'
-pmi_pickle = '/usr/src/app/pickles/pmi.pickle'
 
 
 def get_lyrically_overlapping_songs(song):
@@ -28,7 +14,7 @@ def get_lyrically_overlapping_songs(song):
     :param song: song to match with (Song)
     :return: set of song ids
     """
-    song_words = Lyric.objects.filter(song=song, word__in=good_words).values('word').distinct()
+    song_words = Lyric.objects.filter(song=song, word__in=matrices.good_words).values('word').distinct()
     lyrics = Lyric.objects.filter(word__in=song_words)
     songs_set = lyrics.exclude(song=song).values('song_id').distinct()
     return songs_set
@@ -38,22 +24,22 @@ def get_cosine_top_songs(song):
     overlap = get_lyrically_overlapping_songs(song)
     cos_sims = calc_cosine_sims(song, overlap)
     top_indices = np.argsort(cos_sims)[::-1]
-    return [(overlap[i]['song_id'], cos_sims[i]) for i in top_indices]
+    return {overlap[i]['song_id']: cos_sims[i] for i in top_indices}
 
 
 def get_pmi_top_songs(song):
-    top_indices = np.argsort(pmi[song.id - 1])[::-1]
-    return [(i + 1, pmi[song.id - 1][i]) for i in top_indices if pmi[song.id - 1][i] > 0]
+    top_indices = np.argsort(matrices.pmi[song.id - 1])[::-1]
+    return {i + 1: matrices.pmi[song.id - 1][i] for i in top_indices if matrices.pmi[song.id - 1][i] > 0}
 
 
 def calc_cosine_sims(song, overlapping_songs):
-    song_tf = np.zeros(good_words.count())
-    for lyric in song.lyric_set.filter(word__in=good_words):
+    song_tf = np.zeros(matrices.good_words.count())
+    for lyric in song.lyric_set.filter(word__in=matrices.good_words):
         try:
-            df = doc_freq[word_to_index[lyric.word.word]]
+            df = matrices.doc_freq[matrices.word_to_index[lyric.word.word]]
         except IndexError:
             df = 1
-        song_tf[word_to_index[lyric.word.word]] = float(lyric.count) * np.log(song_count / df)
+        song_tf[matrices.word_to_index[lyric.word.word]] = float(lyric.count) * np.log(matrices.song_count / df)
     cos_sims = np.zeros(len(overlapping_songs))
     for ind, olap in enumerate(overlapping_songs):
         cos_sims[ind] = cosine_sim(song_tf, olap)
@@ -66,44 +52,7 @@ def cosine_sim(q, d):
 
 
 def tfidf_vec(song_id):
-    return song_word[song_id - 1] * np.log(song_count / doc_freq)
-
-
-def load_matrices():
-    global song_count, doc_freq, song_word, good_words, word_to_index, pmi, initialized
-    logger.info("Loading Matrices")
-    start = time.time()
-    song_count = Song.objects.count()
-    try:
-        with open(good_words_pickle, 'rb') as f:
-            good_words = pickle.load(f)
-        temp = time.time()
-        logger.info("Loaded Good Words in %s" % (temp - start))
-        start = temp
-        with open(word_to_index_pickle, 'rb') as f:
-            word_to_index = pickle.load(f)
-        temp = time.time()
-        logger.info("Loaded Word Index in %s" % (temp - start))
-        start = temp
-        with open(doc_freq_pickle, 'rb') as f:
-            doc_freq = pickle.load(f)
-        temp = time.time()
-        logger.info("Loaded Document Frequency in %s" % (temp - start))
-        start = temp
-        with open(song_word_pickle, 'rb') as f:
-            song_word = pickle.load(f)
-        temp = time.time()
-        logger.info("Loaded Song Word in %s" % (temp - start))
-        tfidf_mat = song_word * np.log(song_count / doc_freq)
-        pmi = np.dot(tfidf_mat, tfidf_mat.T)
-        norm = np.linalg.norm(song_word, axis=1)
-        pmi /= norm
-        pmi = (pmi.T / norm).T
-        initialized = True
-        logger.info("Loaded Matrices")
-    except IOError as e:
-        logger.info("Unable to load matrices")
-        logger.exception(e)
+    return matrices.song_word[song_id - 1] * np.log(matrices.song_count / matrices.doc_freq)
 
 
 def refresh_matrices(song):

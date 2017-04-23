@@ -137,11 +137,11 @@ def get_all_mxm_info(name, artist_name):
     # response = requests.get(str(Request(query_string, keywords))).json()
     response = requests.get(musix_match_request(query_string, keywords)).json()
     code = response['message']['header']['status_code']
-    if code == 404:
-        return None, None, None, None
     if code == 401 or code == 402:
         iterate_key()
         return get_all_mxm_info(name, artist_name)
+    if code != 200:
+        return None, None, None, None
     response = response['message']['body']['track']
     artist_id = response['artist_id']
     art_name = response['artist_name']
@@ -258,11 +258,11 @@ def mxm_get_lyrics(mxm_id):
     # response = requests.get(str(Request(query_string, keywords))).json()
     response = requests.get(musix_match_request(query_string, keywords)).json()['message']
     code = response['header']['status_code']
-    if code == 404:
-        return ''
     if code == 401 or code == 402:
         iterate_key()
         return mxm_get_lyrics(mxm_id)
+    if code != 200:
+        return ''
     lyrics = response['body']['lyrics']['lyrics_body']
     return lyrics[:lyrics.find('*')]
 
@@ -385,7 +385,7 @@ def fetch_category_playlists(spotify_catagory_id):
         print('*' * 20)
         request = sp.user_playlist_tracks(p['owner']['id'], playlist_id=p['id'])
         for s in request['items']:
-            if s['track']['id']:
+            if s and s['track']['id']:
                 song, created = build_song_from_id(s['track']['id'])
                 playlist.songs.add(song)
                 print(song.spotify_id, created)
