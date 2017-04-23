@@ -3,11 +3,11 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render_to_response
 from unidecode import unidecode
 
-from smart_playlist import db_builder, text_anal
+from smart_playlist import text_anal, search_methods
 from smart_playlist.models import Song
 
 
-def search(request):
+def search(request, version):
     output = ''
     songs = None
     query = None
@@ -16,12 +16,12 @@ def search(request):
     if request.GET.get('song'):
         song = request.GET.get('song')
         artist = request.GET.get('artist')
-        song, created = db_builder.build_song_from_name(song, artist)
-        if created:
-            text_anal.refresh_matrices(song)
-            top_songs = text_anal.get_cosine_top_songs(song)
+        if version == 1:
+            top_songs = search_methods.search_v1(song, artist)
+        elif version == 2:
+            top_songs = search_methods.search_v2(song, artist)
         else:
-            top_songs = text_anal.get_pmi_top_songs(song)
+            top_songs = search_methods.search_v3(song, artist)
         paginator = Paginator(top_songs, 10)
         page = request.GET.get('page')
         try:
