@@ -3,10 +3,13 @@ import logging
 import os
 import sys
 import time
+from collections import defaultdict
 
 import django
 import numpy as np
 from django.db.models import Max
+from scipy import sparse
+from sklearn import cluster
 
 django.setup()
 
@@ -16,84 +19,99 @@ from smart_playlist.models import Song, Word, Lyric, AudioFeatures, Playlist
 logger = logging.getLogger(__name__)
 
 
-def write_pickles():
-    global doc_freq, song_word, good_words, word_to_index, audio_matrix, playlist_song
-    if os.path.exists(matrices.doc_freq_pickle):
-        os.remove(matrices.doc_freq_pickle)
-    with open(matrices.doc_freq_pickle, 'wb') as f:
-        pickle.dump(doc_freq, f)
-    if os.path.exists(matrices.song_word_pickle):
-        os.remove(matrices.song_word_pickle)
-    with open(matrices.song_word_pickle, 'wb') as f:
-        pickle.dump(song_word, f)
-    if os.path.exists(matrices.word_to_index_pickle):
-        os.remove(matrices.good_words_pickle)
-    with open(matrices.good_words_pickle, 'wb') as f:
-        pickle.dump(good_words, f)
-    if os.path.exists(matrices.word_to_index_pickle):
-        os.remove(matrices.word_to_index_pickle)
-    with open(matrices.word_to_index_pickle, 'wb') as f:
-        pickle.dump(word_to_index, f)
-    if os.path.exists(matrices.af_pickle):
-        os.remove(matrices.af_pickle)
-    with open(matrices.af_pickle, 'wb') as f:
-        pickle.dump(audio_matrix, f)
-    if os.path.exists(matrices.playlist_pickle):
-        os.remove(matrices.playlist_pickle)
-    with open(matrices.playlist_pickle, 'wb') as f:
-        pickle.dump(playlist_song, f)
+def log_time(message, start):
+    logger.info(message)
+    end = time.time()
+    logger.info("Elapsed time: %s" % (end - start))
+    return end
 
 
-def build_matrices():
-    # TODO: Make more efficient
-    global doc_freq, song_word, good_words, word_to_index, audio_matrix, playlist_song
+def prune_data():
+    start = time.time()
+    Word.objects.filter(lyric__count=1).delete()
+    log_time("Pruned Data", start)
+
+
+def build_lyrics():
     start = time.time()
     num_ids = Song.objects.all().aggregate(Max('id'))['id__max']
     song_count = Song.objects.count()
     logger.info("Songs: %s" % song_count)
-    logger.info("Total Number of Words %s" % Word.objects.count())
-    logger.info("Elapsed Time: %s" % (time.time() - start))
-    max_thresh = song_count * 0.9
-    min_thresh = 5
-    good_words = Word.objects.filter(lyric__count__gt=min_thresh) \
-        .filter(lyric__count__lt=max_thresh).distinct('word')
-    logger.info("Number of Good Words: %s" % good_words.count())
-    logger.info("Elapsed Time: %s" % (time.time() - start))
-    word_to_index = {}
-    for index, word in enumerate(good_words):
-        word_to_index[word.word] = index
-    logger.info("Word To Index Map Created")
-    logger.info("Elapsed Time: %s" % (time.time() - start))
-    doc_freq = np.zeros(good_words.count())
-    for word in good_words:
-        doc_freq[word_to_index[word.word]] = word.lyric_set.count() + 1
-    logger.info("Doc Freq Matrix Created")
-    logger.info("Elapsed Time: %s" % (time.time() - start))
-    lyrics = Lyric.objects.all()
-    song_word = np.zeros([num_ids, good_words.count()])
-    good_lyrics = lyrics.filter(word__in=good_words)
-    logger.info("Building Matrix for %s lyrics" % good_lyrics.count())
-    logger.info("Elapsed Time: %s" % (time.time() - start))
-    for lyric in good_lyrics:
-        song_word[lyric.song_id - 1, word_to_index[lyric.word.word]] = float(lyric.count)
-    logger.info("Song Word Matrix Created")
-    logger.info("Elapsed Time: %s" % (time.time() - start))
+    start = log_time("Total Number of Words %s" % Word.objects.count(), start)
+    inv_index = defaultdict(list)
+    df = defaultdict(int)
+    doc_lyrics = defaultdict(list)
+    for lyric in Lyric.objects.all():
+        inv_index[lyric.word_id].append((lyric.song_id, lyric.count))
+        df[lyric.word_id] += 1
+        doc_lyrics[lyric.song_id].append((lyric.word_id, lyric.count))
+    start = log_time("Inverse Index and Document Frequency Created", start)
+    doc_norms = defaultdict(float)
+    for doc, postings in doc_lyrics.iteritems():
+        for wid, count in postings:
+            doc_norms[doc] += (count * np.log(song_count / df[wid])) ** 2
+        doc_norms[doc] = np.math.sqrt(doc_norms[doc])
+
+    if os.path.exists(matrices.doc_freq_pickle):
+        os.remove(matrices.doc_freq_pickle)
+    with open(matrices.doc_freq_pickle, 'wb') as f:
+        pickle.dump(df, f)
+
+    if os.path.exists(matrices.inv_index_pickle):
+        os.remove(matrices.inv_index_pickle)
+    with open(matrices.inv_index_pickle, 'wb') as f:
+        pickle.dump(inv_index, f)
+
+    if os.path.exists(matrices.doc_norm_pickle):
+        os.remove(matrices.doc_norm_pickle)
+    with open(matrices.doc_norm_pickle, 'wb') as f:
+        pickle.dump(doc_norms, f)
+
+    log_time("Wrote Lyrics Pickles", start)
+    return num_ids
+
+
+def build_audio(num_ids):
+    start = time.time()
     audio_matrix = np.zeros((num_ids, 7))
     audio_features = AudioFeatures.objects.all()
-    good_features = ['danceability', 'energy', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence']
     for af in audio_features:
-        audio_matrix[af.song_id - 1] = [val for key, val in af if key in good_features]
-    logger.info("Audio Features Matrix Created")
-    logger.info("Elapsed Time: %s" % (time.time() - start))
+        audio_matrix[af.song_id - 1] = [val for key, val in af if key in matrices.good_features]
+    start = log_time("Audio Features Matrix Created", start)
+
+    af_clusters = cluster.KMeans(n_clusters=matrices.N_CLUST).fit(audio_matrix)
+    start = log_time("Audio Clusters Created", start)
+    if os.path.exists(matrices.af_pickle):
+        os.remove(matrices.af_pickle)
+    with open(matrices.af_pickle, 'wb') as f:
+        pickle.dump(af_clusters, f)
+    log_time("Wrote AudioFeature Pickles", start)
+
+
+def build_playlist(num_ids):
+    start = time.time()
     playlist_song = np.zeros((Playlist.objects.all().aggregate(Max('id'))['id__max'], num_ids))
     for playlist in Playlist.objects.all():
         for song in playlist.songs.all():
             playlist_song[playlist.id - 1, song.id - 1] = 1
-    logger.info("Playlist Song Matrix Created")
-    logger.info("Elapsed Time: %s" % (time.time() - start))
-    write_pickles()
-    logger.info("Wrote pickle files")
-    logger.info("Elapsed Time: %s" % (time.time() - start))
+    start = log_time("Playlist Song Matrix Created", start)
+    if os.path.exists(matrices.playlist_pickle):
+        os.remove(matrices.playlist_pickle)
+    with open(matrices.playlist_pickle, 'wb') as f:
+        pickle.dump(sparse.csr_matrix(playlist_song), f)
+    log_time("Wrote Playlist Pickles", start)
+
+
+def build_matrices():
+    # TODO: Make more efficient
+    logger.info("Building Matrices")
+    start = time.time()
+    # prune_data()
+    num_ids = build_lyrics()
+
+    build_audio(num_ids)
+    build_playlist(num_ids)
+    log_time("Built Matrices", start)
 
 if __name__ == "__main__":
     build_matrices()

@@ -33,10 +33,9 @@ from smart_playlist.models import Song, Artist, Lyric, Album, AudioFeatures, Wor
 def iterate_key():
     global count
     global musixmatch_key
-
+    count += 1
     if count == len(musixmatch_apis):
         sys.exit(0)
-    count += 1
     musixmatch_key = musixmatch_apis[count]
     print("Switched to key: %s" % musixmatch_key)
 

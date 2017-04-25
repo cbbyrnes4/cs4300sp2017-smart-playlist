@@ -1,58 +1,36 @@
 import logging
+from collections import defaultdict
 
 import numpy as np
 
 import matrices
-from smart_playlist.models import Lyric
 
 logger = logging.getLogger(__name__)
 
 
-def get_lyrically_overlapping_songs(song):
-    """
-    Returns all of the song ids of songs that share a lyric with the provided song
-    :param song: song to match with (Song)
-    :return: set of song ids
-    """
-    song_words = Lyric.objects.filter(song=song, word__in=matrices.good_words).values('word').distinct()
-    lyrics = Lyric.objects.filter(word__in=song_words)
-    songs_set = lyrics.exclude(song=song).values('song_id').distinct()
-    return songs_set
-
-
 def get_cosine_top_songs(song):
-    overlap = get_lyrically_overlapping_songs(song)
-    cos_sims = calc_cosine_sims(song, overlap)
-    top_indices = np.argsort(cos_sims)[::-1]
-    return {overlap[i]['song_id']: cos_sims[i] for i in top_indices}
+    cos_sims = calc_cosine_sims(song)
+    return {song: score for song, score in cos_sims.iteritems() if score > 0}
 
 
-def get_pmi_top_songs(song):
-    top_indices = np.argsort(matrices.pmi[song.id - 1])[::-1]
-    return {i + 1: matrices.pmi[song.id - 1][i] for i in top_indices if matrices.pmi[song.id - 1][i] > 0}
+def calc_cosine_sims(song):
+    song_scores = defaultdict(float)
+    q_norm = 0
+    for lyric in song.lyric_set.all():
+        for doc, count in matrices.inv_index[lyric.word_id]:
+            song_scores[doc] += tfidf(lyric.word_id, lyric.count) * tfidf(lyric.word_id, count)
+        q_norm += (tfidf(lyric.word_id, lyric.count)) ** 2
+    q_norm = np.sqrt(q_norm)
+    for doc in song_scores.keys():
+        song_scores[doc] /= matrices.doc_norm[doc]
+        song_scores[doc] /= q_norm
+    return song_scores
 
 
-def calc_cosine_sims(song, overlapping_songs):
-    song_tf = np.zeros(matrices.good_words.count())
-    for lyric in song.lyric_set.filter(word__in=matrices.good_words):
-        try:
-            df = matrices.doc_freq[matrices.word_to_index[lyric.word.word]]
-        except IndexError:
-            df = 1
-        song_tf[matrices.word_to_index[lyric.word.word]] = float(lyric.count) * np.log(matrices.song_count / df)
-    cos_sims = np.zeros(len(overlapping_songs))
-    for ind, olap in enumerate(overlapping_songs):
-        cos_sims[ind] = cosine_sim(song_tf, olap)
-    return cos_sims
+def tfidf(word_id, count):
+    return count * np.log(matrices.song_count / matrices.doc_freq[word_id])
 
 
-def cosine_sim(q, d):
-    song_vec = tfidf_vec(d['song_id'])
-    return np.dot(q, song_vec) / (np.linalg.norm(q) * np.linalg.norm(song_vec))
-
-
-def tfidf_vec(song_id):
-    return matrices.song_word[song_id - 1] * np.log(matrices.song_count / matrices.doc_freq)
 
 
 def refresh_matrices(song):
