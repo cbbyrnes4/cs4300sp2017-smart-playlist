@@ -17,7 +17,7 @@ def search_v1(song, artist):
     songs = [(song, score) for song, score in
              text_anal.get_cosine_top_songs(song).iteritems()]
     songs.sort(key=itemgetter(1), reverse=True)
-    return songs
+    return [(song, score, 0, 0, score) for song, score in songs]
 
 
 ALPHA_1 = 1
@@ -40,7 +40,12 @@ def search_v2(song, artist):
                (GAMMA_1 * playlist_rank[i] if i in playlist_rank else 0)) for
               i in range(num_ids)]
     scores.sort(key=itemgetter(1), reverse=True)
-    return scores
+    return [(i,
+             (ALPHA_1 * lyric_rank[i] if i in lyric_rank else 0),
+             (BETA_1 * 1 if i in cluster_songs else 0),
+             (GAMMA_1 * playlist_rank[i] if i in playlist_rank else 0),
+             score)
+            for i, score in scores]
 
 
 def search_v3(song, artist):
