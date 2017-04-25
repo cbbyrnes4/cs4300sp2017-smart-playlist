@@ -139,7 +139,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': '/usr/src/app/logs/debug.log',
+            'filename': '/usr/local/src/app/logs/debug.log',
             'formatter': 'verbose'
         },
         'console': {

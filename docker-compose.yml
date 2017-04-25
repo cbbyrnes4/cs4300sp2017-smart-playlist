@@ -12,9 +12,9 @@ services:
       - back-tier
       - front-tier
     volumes:
-      - static:/usr/src/app/static
-      - logs:/usr/src/app/logs
-      - pickles:/usr/src/app/pickles
+      - static:/usr/local/src/app/static
+      - logs:/usr/local/src/app/logs
+      - pickles:/usr/local/src/app/pickles
     env_file: web.env
     environment:
       - DB_IP=db

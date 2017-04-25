@@ -8,11 +8,11 @@ from smart_playlist.models import Song
 
 logger = logging.getLogger(__name__)
 
-doc_freq_pickle = "/usr/src/app/pickles/doc_freq.pickle"
-inv_index_pickle = '/usr/src/app/pickles/inv_index.pickle'
-doc_norm_pickle = '/usr/src/app/pickles/doc_norms.pickle'
-af_pickle = '/usr/src/app/pickles/audio_matrix.pickle'
-playlist_pickle = '/usr/src/app/pickles/playlist_pickle.pickle'
+doc_freq_pickle = "/usr/local/src/app/pickles/doc_freq.pickle"
+inv_index_pickle = '/usr/local/src/app/pickles/inv_index.pickle'
+doc_norm_pickle = '/usr/local/src/app/pickles/doc_norms.pickle'
+af_pickle = '/usr/local/src/app/pickles/audio_matrix.pickle'
+playlist_pickle = '/usr/local/src/app/pickles/playlist_pickle.pickle'
 
 good_features = ['danceability', 'energy', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence']
 
