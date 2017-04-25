@@ -1,7 +1,7 @@
 import cPickle as pickle
 import logging
 import time
-
+from scipy import sparse
 import numpy as np
 
 from smart_playlist.models import Song
@@ -59,10 +59,10 @@ def load_playlist():
     global playlist_concurrence, playlist_norm
     start = time.time()
     with open(playlist_pickle, 'rb') as f:
-        playlist_song = pickle.load(f).todense()
+        playlist_song = pickle.load(f)
     logger.info("Loaded Playlist Song Matrix in %s" % (time.time() - start))
-    playlist_concurrence = np.dot(playlist_song.T, playlist_song)
-    playlist_norm = np.linalg.norm(playlist_song, axis=0)
+    playlist_concurrence = playlist_song.T.dot(playlist_song)
+    playlist_norm = sparse.linalg.norm(playlist_song, axis=0)
     temp = time.time()
     logger.info("Loaded Playlist Concurrence in %s" % (temp - start))
 
