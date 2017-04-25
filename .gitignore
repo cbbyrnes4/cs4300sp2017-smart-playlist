@@ -3,4 +3,3 @@ smartplaylist/db.sqlite3
 *.pyc
 *.DS_STORE
 smartplaylist/db.json
-smartplaylist/static/*
