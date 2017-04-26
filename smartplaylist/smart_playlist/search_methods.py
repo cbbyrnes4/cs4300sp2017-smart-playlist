@@ -3,7 +3,7 @@ from operator import itemgetter
 
 from django.db.models import Max
 
-from smart_playlist import db_builder, text_anal, af_clust, playlist
+from smart_playlist import db_builder, text_anal, af_clust, playlist, matrices
 from smart_playlist.models import Song
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ GAMMA_1 = 1
 def search_v2(song, artist):
     num_ids = Song.objects.all().aggregate(Max('id'))['id__max']
     song, created = db_builder.build_song_from_name(song, artist)
-    if created:
+    if created or song.id >= matrices.playlist_concurrence.shape[0]:
         playlist_rank = {}
     else:
         playlist_rank = playlist.playlist_pmi(song.id)
