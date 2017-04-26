@@ -11,7 +11,7 @@ from smart_playlist.models import Song
 logger = logging.getLogger(__name__)
 
 
-def search(request, version):
+def search(request):
     output = ''
     songs = None
     query = None
@@ -20,10 +20,10 @@ def search(request, version):
     if request.GET.get('song'):
         song = request.GET.get('song')
         artist = request.GET.get('artist')
-        if version == '1':
+        if request.GET.get('version') == '1':
             logger.info("Using V1")
             top_songs = search_methods.search_v1(song, artist)
-        elif version == '2':
+        elif request.GET.get('version') == '2':
             logger.info("Using V2")
             top_songs = search_methods.search_v2(song, artist)
         else:

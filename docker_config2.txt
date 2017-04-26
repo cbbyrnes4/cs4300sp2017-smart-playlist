@@ -1,0 +1,38 @@
+To Install Docker: https://docs.docker.com/docker-for-mac/install/
+Once installed, run:
+  docker-compose build
+  docker-compose up -d
+
+  To run one-off bash commands, use
+    docker-compose run frontend $COMMAND
+        i.e. docker-compose run frontend python manage.py migrate
+  To enter a bash terminal,
+    docker exec -i -t cs4300sp2017smartplaylist_frontend_1 bash
+  After making UI changes 
+        i.e. docker-compose run frontend python manage.py collectstatic
+
+Killing all current dockers:
+  docker kill $(docker ps -q)
+
+Sudo services postgressql stop
+Ps ls
+
+0) sudo mkdir /usr/local/src
+1) sudo mkdir /usr/local/src/app
+2) sudo chown $USER /usr/local/src/app
+3) mkdir /usr/local/src/app/logs
+4) mkdir /usr/local/src/app/pickles
+5) mkdir /usr/local/src/app/static
+6) . ./setup_env.sh
+
+
+Loading data
+1) python manage.py loaddata db.json 
+2) python build_matrices.py #inverse index, doc drew, doc norms, all static files 
+3) python manage.py runserver
+
+localhost:8000/ 
+
+
+Production server is at 52.11.57.68 with username ec2-user
+SSH in using key-pair

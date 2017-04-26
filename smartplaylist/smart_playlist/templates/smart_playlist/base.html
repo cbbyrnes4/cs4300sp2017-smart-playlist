@@ -13,9 +13,11 @@
         </title>
     </head>
     
-    <body>
+    <body >
+
+
         <form class="form-inline global-search" method='GET'>
-            <h1 style="font-size: 55px; font-family:Futura,serif">
+            <h1 style="font-size: 55px; font-family:Futura,serif; color: #1DB954">
                 Smart Playlist Generator
             </h1>
             
@@ -24,11 +26,15 @@
             <div class="form-group">
                 <input id="input" type="text" name="song" class="form-control" placeholder="Song Name">
                 <input id="input" type="text" name="artist" class="form-control" placeholder="Artist Name">
+                <input id= "input" type="radio" name="version" value=1> version1 
+                <input id= "input" type="radio" name="version" value=2 checked> version2 
+                <input id= "input" type="radio" name="version" value=3> version3 
             </div>
+            
             <button type="submit" class="btn btn-info"> Go! </button>
         </form>
         
-        <div class="form-inline global-search">
+        <div class="form-inline global-search" style= "color:#1DB954">
             <h4>Song | Lyric Score | Cluster Score | Playlist Score | Total Score</h4><br>
             {% for song in songs %}
                 {{ song }}<br>
@@ -40,12 +46,14 @@
                     <a href= "{{magic_url}}&page={{ output.previous_page_number }}">previous</a>
                     {% endif %}
                     
+
+                    {% if output.has_next %}
                     <!-- Showing the page numbers in Html Page -->
                     <span class="current">
                     Page {{ output.number }} of {{ output.paginator.num_pages }}
                     </span>
                     
-                    {% if output.has_next %}
+                    
                     <a href= "{{magic_url}}&page={{ output.next_page_number }}">next</a>
                     {% endif %}
                 </span>

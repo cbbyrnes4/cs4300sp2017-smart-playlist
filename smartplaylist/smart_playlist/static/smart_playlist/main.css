@@ -8,7 +8,9 @@
 padding: 20px 0;
 text-align:center;
 }
+
 body {
+background-color:#191414;	
 padding-top: 15%;
 padding-bottom: 15px;
 }
@@ -19,6 +21,7 @@ padding:10px;
 .global-search .form-control {
 width:500px;
 }
+
 .global-search * {
 display:inline-block;
 margin-bottom:0;
