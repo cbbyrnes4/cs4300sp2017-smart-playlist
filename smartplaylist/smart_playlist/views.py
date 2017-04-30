@@ -77,9 +77,9 @@ def search(request):
             top_songs = search_methods.search_v2(song, artist)
         else:
             logger.info("Using V3")
-            alpha = int(request.GET.get('alpha')) / 100
-            beta = int(request.GET.get('beta')) / 100
-            gamma = int(request.GET.get('gamma')) / 100
+            alpha = float(request.GET.get('alpha')) / 100
+            beta = float(request.GET.get('beta')) / 100
+            gamma = float(request.GET.get('gamma')) / 100
             top_songs = search_methods.search_v3(song, artist, alpha, beta, gamma)
         output = top_songs[1:21]
         songs = [{'song': unidecode(Song.objects.get(id=i).__str__()), 
