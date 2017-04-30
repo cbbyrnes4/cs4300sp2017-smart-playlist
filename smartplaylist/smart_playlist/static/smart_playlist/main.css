@@ -52,5 +52,11 @@
 	color:#1DB954;
 }
 
-td { border: #ccc 1px solid; padding: 10px; overflow:hidden; display: table-cell;}
+td { border-top: #ccc 1px solid; padding: 10px; overflow:hidden; display: table-cell;}
+table {
+	margin: ;
+}
 
+#results {
+	color: white;
+}

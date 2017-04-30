@@ -41,8 +41,10 @@
             <button type="submit" class="btn btn-info"> Go! </button>
         </form>
         
+        {% if songs %}
+        <div class="global-search">You searched for: {{ query }}</div>
         <div class="form-inline global-search">
-            <table>
+            <table id="results">
                 <thead>
                     <tr>
                         <th>Preview</th>
@@ -54,39 +56,21 @@
                     </tr>
                 </thead>
                 <tbody>
-            {% for song in songs %}
-                <tr>    
-                    <td><audio class="js-music music-player-item" src="{{ song.preview }}" controls></audio></td>
-                    <td>{{ song.song }}</td>
-                    <td>{{ song.lyric }}</td>
-                    <td>{{ song.cluster }}</td>
-                    <td>{{ song.playlist }}</td>
-                    <td>{{ song.total }}</td>
-                </tr>
-            {% endfor %}
+                {% for song in songs %}
+                    <tr>    
+                        <td><audio class="js-music music-player-item" src="{{ song.preview }}" controls></audio></td>
+                        <td>{{ song.song }}</td>
+                        <td>{{ song.lyric }}</td>
+                        <td>{{ song.cluster }}</td>
+                        <td>{{ song.playlist }}</td>
+                        <td>{{ song.total }}</td>
+                    </tr>
+                {% endfor %}
                 </tbody>
-
             </table>
-            
-<!--             <div class="pagination">
-                <span class="step-links">
-                    {% if output.has_previous %}
-                    <a href= "{{magic_url}}&page={{ output.previous_page_number }}">previous</a>
-                    {% endif %}
-                    
-
-                    {% if output.has_next %}
-                    Showing the page numbers in Html Page
-                    <span class="current">
-                    Page {{ output.number }} of {{ output.paginator.num_pages }}
-                    </span>
-                    
-                    
-                    <a href= "{{magic_url}}&page={{ output.next_page_number }}">next</a>
-                    {% endif %}
-                </span>
-            </div> -->
         </div>
+        {% endif %}
+
         <script
             src="https://code.jquery.com/jquery-3.2.1.min.js"
             integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="

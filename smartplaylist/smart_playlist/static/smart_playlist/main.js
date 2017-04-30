@@ -3,10 +3,13 @@ $(function () {
 	    source: '/find_song',
 	    minLength: 3,
 	    select: function (event, ui) {
-	    	if (!$("#artist").val()) {
-	    		$("#artist").val(ui.item.id);
-	    	}
+	    	$("#artist").val(ui.item.id);
 	    }
+  	});
+
+  	$("#artist").autocomplete({
+	    source: '/find_artist',
+	    minLength: 3
   	});
 
 });

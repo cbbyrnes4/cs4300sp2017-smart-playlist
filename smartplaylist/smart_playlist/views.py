@@ -107,3 +107,19 @@ def find_song(request):
         results.append(song_json)
 
     return JsonResponse(results, safe=False)
+
+def find_artist(request):
+    artist_name = str(request.GET.get('term')).strip('\'')
+    artists = Artist.objects.filter(name__icontains=artist_name)[:10]
+    results = []
+
+    for artist in artists:
+        artist_json = {}
+        artist_json['value'] = unidecode(artist.name)
+
+        results.append(artist_json)
+
+    return JsonResponse(results, safe=False)
+
+
+
