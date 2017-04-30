@@ -1,8 +1,14 @@
 <html>
     <head>
         {% load static %}
-        <link rel="stylesheet" href="{% static "smart_playlist/bootstrap.min.css" %}">
-        <link rel="stylesheet" href="{% static "smart_playlist/main.css" %}">
+        <link rel="stylesheet" href="{% static 'smart_playlist/bootstrap.min.css' %}">
+        <link rel="stylesheet" href="{% static 'smart_playlist/main.css' %}">
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+        <!-- <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css"
+         rel = "stylesheet"> -->
+         <link href="https://code.jquery.com/ui/1.12.1/themes/black-tie/jquery-ui.css" rel="stylesheet">
+
         <script type="text/javascript" src="http://tracking.musixmatch.com/t1.0/AMa6hJCIEzn1v8RuOP"></script>
         <title>
             {% if query %}
@@ -13,34 +19,56 @@
         </title>
     </head>
     
-    <body >
-
-
-        <form class="form-inline global-search" method='GET'>
+    <body>
+        <form action='' class="form-inline global-search" method='GET'>
             <h1 style="font-size: 55px; font-family:Futura,serif; color: #1DB954">
                 Smart Playlist Generator
             </h1>
             
             <br><br>
-            
-            <div class="form-group">
-                <input id="input" type="text" name="song" class="form-control" placeholder="Song Name">
-                <input id="input" type="text" name="artist" class="form-control" placeholder="Artist Name">
-                <input id= "input" type="radio" name="version" value=1> version1 
-                <input id= "input" type="radio" name="version" value=2 checked> version2 
-                <input id= "input" type="radio" name="version" value=3> version3 
+
+            <div class="form-group ui-widget">
+                <input id="song" type="text" name="song" class="form-control ui-autocomplete-input" placeholder="Song Name" autocomplete="off">
+                <input id="artist" type="text" name="artist" class="form-control ui-widget" placeholder="Artist Name">
+                <input id="input" type="radio" name="version" value=1> version1 
+                <input id="input" type="radio" name="version" value=2 checked> version2 
+                <input id="input" type="radio" name="version" value=3> version3 
             </div>
+
+            <!-- https://simpleisbetterthancomplex.com/tutorial/2016/08/29/how-to-work-with-ajax-request-with-django.html -->
+            <!-- http://jqueryui.com/autocomplete/#remote-jsonp -->
             
             <button type="submit" class="btn btn-info"> Go! </button>
         </form>
         
-        <div class="form-inline global-search" style= "color:#1DB954">
-            <h4>Song | Lyric Score | Cluster Score | Playlist Score | Total Score</h4><br>
+        <div class="form-inline global-search">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Preview</th>
+                        <th>Song</th>
+                        <th>Lyric Score</th>
+                        <th>Cluster Score</th>
+                        <th>Playlist Score</th>
+                        <th>Total Score</th>
+                    </tr>
+                </thead>
+                <tbody>
             {% for song in songs %}
-                {{ song }}<br>
+                <tr>    
+                    <td><audio class="js-music music-player-item" src="{{ song.preview }}" controls></audio></td>
+                    <td>{{ song.song }}</td>
+                    <td>{{ song.lyric }}</td>
+                    <td>{{ song.cluster }}</td>
+                    <td>{{ song.playlist }}</td>
+                    <td>{{ song.total }}</td>
+                </tr>
             {% endfor %}
+                </tbody>
+
+            </table>
             
-            <div class="pagination">
+<!--             <div class="pagination">
                 <span class="step-links">
                     {% if output.has_previous %}
                     <a href= "{{magic_url}}&page={{ output.previous_page_number }}">previous</a>
@@ -48,7 +76,7 @@
                     
 
                     {% if output.has_next %}
-                    <!-- Showing the page numbers in Html Page -->
+                    Showing the page numbers in Html Page
                     <span class="current">
                     Page {{ output.number }} of {{ output.paginator.num_pages }}
                     </span>
@@ -57,7 +85,18 @@
                     <a href= "{{magic_url}}&page={{ output.next_page_number }}">next</a>
                     {% endif %}
                 </span>
-            </div>
+            </div> -->
         </div>
+        <script
+            src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous">
+        </script>
+        <script
+            src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+            integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+            crossorigin="anonymous">    
+        </script>
+        <script type="text/javascript" src="{% static 'smart_playlist/main.js' %}"></script>
     </body>
 </html>
