@@ -77,7 +77,10 @@ def search(request):
             top_songs = search_methods.search_v2(song, artist)
         else:
             logger.info("Using V3")
-            top_songs = search_methods.search_v3(song, artist)
+            alpha = int(request.GET.get('alpha')) / 100
+            beta = int(request.GET.get('beta')) / 100
+            gamma = int(request.GET.get('gamma')) / 100
+            top_songs = search_methods.search_v3(song, artist, alpha, beta, gamma)
         output = top_songs[1:21]
         songs = [{'song': unidecode(Song.objects.get(id=i).__str__()), 
                  'lyric': lyric, 
@@ -86,8 +89,9 @@ def search(request):
                  'total': total, 
                  'preview': sp.track(str(Song.objects.values_list('spotify_id').get(id=i)[0]))['preview_url']} 
                  for i, lyric, cluster, playlist, total in output]
-        query = unidecode(Song.objects.get(id=top_songs[0][0]).__str__())    
+        query = (song, artist)
     return render(request, "smart_playlist/base.html", context={ 'songs': songs, 'query': query })
+
 
 def find_song(request):
     song_name = str(request.GET.get('term')).strip('\'')

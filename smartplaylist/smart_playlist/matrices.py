@@ -12,9 +12,12 @@ doc_freq_pickle = "/usr/local/src/app/pickles/doc_freq.pickle"
 inv_index_pickle = '/usr/local/src/app/pickles/inv_index.pickle'
 doc_norm_pickle = '/usr/local/src/app/pickles/doc_norms.pickle'
 af_pickle = '/usr/local/src/app/pickles/audio_matrix.pickle'
+struct_pickle = '/usr/local/src/app/pickles/struct_clusters.pickle'
 playlist_pickle = '/usr/local/src/app/pickles/playlist_pickle.pickle'
 
 good_features = ['danceability', 'energy', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence']
+
+structure_features = ['loudness', 'tempo', 'time_signature', 'key']
 
 N_CLUST = 1000
 
@@ -23,6 +26,7 @@ doc_freq = np.array([])
 inv_index = {}
 doc_norm = {}
 af_clusters = None
+struct_clusters = None
 playlist_concurrence = None
 playlist_norm = None
 initialized = False
@@ -47,10 +51,12 @@ def load_lyrics():
 
 
 def load_audio():
-    global af_clusters
+    global af_clusters, struct_clusters
     start = time.time()
     with open(af_pickle, 'rb') as f:
         af_clusters = pickle.load(f)
+    with open(struct_pickle, 'rb') as f:
+        struct_clusters = pickle.load(f)
     temp = time.time()
     logger.info("Loaded Audio Feature Clusters in %s" % (temp - start))
 

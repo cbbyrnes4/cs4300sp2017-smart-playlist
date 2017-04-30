@@ -12,7 +12,7 @@
         <script type="text/javascript" src="http://tracking.musixmatch.com/t1.0/AMa6hJCIEzn1v8RuOP"></script>
         <title>
             {% if query %}
-                {{ query }}
+                {{ query.0 }}
             {% else %}
                 Smart Playlist
             {% endif %}
@@ -28,12 +28,43 @@
             <br><br>
 
             <div class="form-group ui-widget">
-                <input id="song" type="text" name="song" class="form-control ui-autocomplete-input" placeholder="Song Name" autocomplete="off">
-                <input id="artist" type="text" name="artist" class="form-control ui-widget" placeholder="Artist Name">
-                <input id="input" type="radio" name="version" value=1> version1 
-                <input id="input" type="radio" name="version" value=2 checked> version2 
-                <input id="input" type="radio" name="version" value=3> version3 
+                <input id="song" type="text" name="song" class="form-control ui-autocomplete-input"
+                       {% if query %}value="{{ query.0 }}"{% endif %} placeholder="Song Name" autocomplete="off">
+                <input id="artist" type="text" name="artist" class="form-control ui-widget"
+                       {% if query %}value="{{ query.1 }}"{% endif %} placeholder="Artist Name">
+                <br>
+                <input id="input" type="radio" name="version" value=1 class="form-control ui-widget"> version1
+                <input id="input" type="radio" name="version" value=2 class="form-control ui-widget"> version2
+                <input id="input" type="radio" name="version" value=3 checked class="form-control ui-widget"> version3
+                <br>
+                <label>
+                    Lyrics
+                    <input name="alpha" id="input" type="range" min="0" max="200" value="100" class="form-control"
+                           onchange="showValue('lyric_weight', this.value)"/>
+                </label>
+                <span id="lyric_weight">100</span>
+                <br>
+                <label>
+                    Audio Features
+                    <input name="beta" id="input" type="range" min="0" max="200" value="100" class="form-control"
+                           onchange="showValue('audio_weight', this.value)"/>
+                </label>
+                <span id="audio_weight">100</span>
+                <br>
+                <label>
+                    Playlist Similarity
+                    <input name="gamma" id="input" type="range" min="0" max="200" value="100" class="form-control"
+                           onchange="showValue('playlist_weight', this.value)"/>
+                </label>
+                <span id="playlist_weight">100</span>
+
+                <script type="text/javascript">
+                    function showValue(id, newValue) {
+                        document.getElementById(id).innerHTML = String(newValue)
+                    }
+                </script>
             </div>
+            <br>
 
             <!-- https://simpleisbetterthancomplex.com/tutorial/2016/08/29/how-to-work-with-ajax-request-with-django.html -->
             <!-- http://jqueryui.com/autocomplete/#remote-jsonp -->

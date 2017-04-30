@@ -75,16 +75,23 @@ def build_audio(num_ids):
     start = time.time()
     audio_matrix = np.zeros((num_ids, 7))
     audio_features = AudioFeatures.objects.all()
+    struct_matrix = np.zeros((num_ids, 4))
     for af in audio_features:
         audio_matrix[af.song_id - 1] = [val for key, val in af if key in matrices.good_features]
+        struct_matrix[af.song_id-1] = [val for key, val in af if key in matrices.structure_features]
     start = log_time("Audio Features Matrix Created", start)
-
     af_clusters = cluster.KMeans(n_clusters=matrices.N_CLUST).fit(audio_matrix)
     start = log_time("Audio Clusters Created", start)
+    struct_clusters = cluster.KMeans(n_clusters=matrices.N_CLUST).fit(struct_matrix)
+    start = log_time("Structure Clusters Created", start)
     if os.path.exists(matrices.af_pickle):
         os.remove(matrices.af_pickle)
     with open(matrices.af_pickle, 'wb') as f:
         pickle.dump(af_clusters, f)
+    if os.path.exists(matrices.struct_pickle):
+        os.remove(matrices.struct_pickle)
+    with open(matrices.struct_pickle, 'wb') as f:
+        pickle.dump(struct_clusters, f)
     log_time("Wrote AudioFeature Pickles", start)
 
 
