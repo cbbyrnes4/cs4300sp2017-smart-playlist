@@ -7,8 +7,9 @@
 
         <!-- <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css"
          rel = "stylesheet"> -->
-         <link href="https://code.jquery.com/ui/1.12.1/themes/black-tie/jquery-ui.css" rel="stylesheet">
-
+        <link href="https://code.jquery.com/ui/1.12.1/themes/black-tie/jquery-ui.css" rel="stylesheet">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="http://tracking.musixmatch.com/t1.0/AMa6hJCIEzn1v8RuOP"></script>
         <title>
             {% if query %}
@@ -33,9 +34,9 @@
                 <input id="artist" type="text" name="artist" class="form-control ui-widget"
                        {% if query %}value="{{ query.1 }}"{% endif %} placeholder="Artist Name">
                 <br>
-                <input id="input" type="radio" name="version" value=1 class="form-control ui-widget"> version1
-                <input id="input" type="radio" name="version" value=2 class="form-control ui-widget"> version2
-                <input id="input" type="radio" name="version" value=3 checked class="form-control ui-widget"> version3
+                <label for="v1">Version 1</label><input id="v1" type="radio" name="version" value=1 class="form-control ui-widget">
+                <label for="v2">Version 2</label><input id="v2" type="radio" name="version" value=2 class="form-control ui-widget">
+                <label for="v3">Version 3</label><input id="v3" type="radio" name="version" value=3 checked class="form-control ui-widget">
                 <br>
                 <label>
                     Lyrics
@@ -73,33 +74,70 @@
         </form>
         
         {% if songs %}
-        <div class="global-search">You searched for: {{ query }}</div>
-        <div class="form-inline global-search">
-            <table id="results">
-                <thead>
-                    <tr>
-                        <th>Preview</th>
-                        <th>Song</th>
-                        <th>Lyric Score</th>
-                        <th>Cluster Score</th>
-                        <th>Playlist Score</th>
-                        <th>Total Score</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for song in songs %}
-                    <tr>    
-                        <td><audio class="js-music music-player-item" src="{{ song.preview }}" controls></audio></td>
-                        <td>{{ song.song }}</td>
-                        <td>{{ song.lyric }}</td>
-                        <td>{{ song.cluster }}</td>
-                        <td>{{ song.playlist }}</td>
-                        <td>{{ song.total }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+        <div class="container">
+          <div class="panel-group" id="accordion">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">
+                  <a data-toggle="collapse" data-parent="#accordion" href="#collapse0">{{ query_song }}</a>
+                </h4>
+              </div>
+              <div id="collapse0" class="panel-collapse collapse in">
+                <div class="panel-body">
+                                        <br>
+                    <h4>Song Characteristics</h4>
+                    <br>
+                    {% for feature in query_features.af %}
+                        <p>{{ feature.0 }}: {{ feature.1|floatformat:3 }}</p>
+                        <br>
+                    {% endfor %}
+                    <br>
+                    <h4>Song Audio Features</h4>
+                    <br>
+                    {% for feature in query_features.sf %}
+                        <p>{{ feature.0 }}: {{ feature.1|floatformat:3 }}</p>
+                        <br>
+                    {% endfor %}
+                </div>
+              </div>
+            </div>
+              {% for song in songs %}
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="panel-title">
+                  <a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ forloop.counter }}">{{ song.song }}</a>
+                </h4>
+              </div>
+              <div id="collapse{{ forloop.counter }}" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <audio class="js-music music-player-item" src="{{ song.preview }}" controls></audio>
+                    <h5>Lyrics Score: {{ song.lyric }}</h5>
+
+                    <br>
+                    <h4>Similar Characteristics</h4>
+                    <br>
+                    {% for feature in song.features.af %}
+                        <p>{{ feature.0 }}: {{ feature.1|floatformat:3}} vs. {{ feature.2|floatformat:3 }}</p>
+                        <br>
+                    {% endfor %}
+                    <h4>Similar Features</h4>
+                    {% for feature in song.features.sf %}
+                        <p>{{ feature.0 }}: {{ feature.1|floatformat:3}} vs. {{ feature.2|floatformat:3 }}</p>
+                        <br>
+                    {% endfor %}
+                    <h5>Cluster Score: {{ song.cluster }}</h5>
+                    <br>
+                    <h4>Number of Shared Playlists: {{ song.features.pc }}</h4>
+                    <h5>Playlist Score: {{ song.playlist }}</h5>
+                    <br>
+                    <h3>Total Score: {{ song.total|floatformat:5 }}</h3>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
         </div>
+
         {% endif %}
 
         <script

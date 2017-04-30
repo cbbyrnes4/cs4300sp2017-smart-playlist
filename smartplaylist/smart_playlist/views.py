@@ -11,7 +11,7 @@ import spotipy
 from spotipy import SpotifyException
 from spotipy.oauth2 import SpotifyClientCredentials
 
-from smart_playlist import search_methods, matrices
+from smart_playlist import search_methods, matrices, db_builder
 from smart_playlist.models import Song, Artist
 
 logger = logging.getLogger(__name__)
@@ -61,9 +61,10 @@ sp = spotipy.Spotify(client_credentials_manager=spo_cred_manager)
 #                                })
 
 def search(request):
-    output = ''
+    query_song = None
     songs = None
     query = None
+    query_features = None
     if not matrices.initialized:
         matrices.load_matrices()
     if request.GET.get('song'):
@@ -82,15 +83,20 @@ def search(request):
             gamma = float(request.GET.get('gamma')) / 100
             top_songs = search_methods.search_v3(song, artist, alpha, beta, gamma)
         output = top_songs[1:21]
+        query_song = db_builder.build_song_from_name(song, artist)[0]
         songs = [{'song': unidecode(Song.objects.get(id=i).__str__()), 
                  'lyric': lyric, 
                  'cluster': cluster, 
                  'playlist': playlist, 
-                 'total': total, 
+                 'total': total,
+                 'features': search_methods.get_similar_features(i, query_song.id),
                  'preview': sp.track(str(Song.objects.values_list('spotify_id').get(id=i)[0]))['preview_url']} 
                  for i, lyric, cluster, playlist, total in output]
         query = (song, artist)
-    return render(request, "smart_playlist/base.html", context={ 'songs': songs, 'query': query })
+        query_features = search_methods.get_features(query_song.id)
+        query_song = unidecode(query_song.__str__())
+    return render(request, "smart_playlist/base.html", context=
+    { 'songs': songs, 'query': query, 'query_song': query_song , 'query_features': query_features })
 
 
 def find_song(request):
@@ -111,6 +117,7 @@ def find_song(request):
         results.append(song_json)
 
     return JsonResponse(results, safe=False)
+
 
 def find_artist(request):
     artist_name = str(request.GET.get('term')).strip('\'')
