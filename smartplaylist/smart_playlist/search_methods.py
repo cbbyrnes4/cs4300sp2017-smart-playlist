@@ -96,4 +96,18 @@ def get_similar_features(song, q_id):
         pc = matrices.playlist_concurrence[song-1, q_id-1]
     except IndexError:
         pc = 0
-    return {'af': audio_features, 'sf': struct_features, 'pc': pc}
+
+    query_lyrics = Lyric.objects.filter(song_id=q_id)
+    song_lyrics = Lyric.objects.filter(song_id=song)
+    good_words = Word.objects.filter(id__in=query_lyrics.values('word_id')).filter(id__in=song_lyrics.values('word_id')).values('id')
+    good_query_lyrics = query_lyrics.filter(word_id__in=good_words)
+    good_song_lyrics = song_lyrics.filter(word_id__in=good_words)
+
+    overlaps = [(ql.word_id, ql.count, sl.count) for ql, sl in
+                zip(good_query_lyrics.order_by('word_id'), good_song_lyrics.order_by('word_id'))]
+
+    tf_scores = [(wid, text_anal.tfidf(wid, qc)*text_anal.tfidf(wid, sc), qc, sc) for wid, qc, sc in overlaps]
+    tf_scores.sort(key=itemgetter(1), reverse=True)
+    top_lyrics = [(Word.objects.get(id=wid).word, text_anal.tfidf(wid, qc), text_anal.tfidf(wid, sc))
+                  for wid, _, qc, sc in tf_scores[:10]]
+    return {'af': audio_features, 'sf': struct_features, 'pc': pc, 'lyrics': top_lyrics}

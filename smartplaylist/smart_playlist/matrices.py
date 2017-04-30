@@ -19,7 +19,7 @@ good_features = ['danceability', 'energy', 'speechiness', 'acousticness', 'instr
 
 structure_features = ['loudness', 'tempo', 'time_signature', 'key']
 
-N_CLUST = 1000
+N_CLUST = 500
 
 song_count = -1
 doc_freq = np.array([])

@@ -111,6 +111,12 @@
               <div id="collapse{{ forloop.counter }}" class="panel-collapse collapse">
                 <div class="panel-body">
                     <audio class="js-music music-player-item" src="{{ song.preview }}" controls></audio>
+                    <h4>Similar Lyrics (by TF-IDF)</h4>
+                    <br>
+                    {% for lyric in song.features.lyrics %}
+                        <p>{{ lyric.0 }}: {{ lyric.1 }} and {{ lyric.2 }}</p>
+                        <br>
+                    {% endfor %}
                     <h5>Lyrics Score: {{ song.lyric }}</h5>
 
                     <br>
