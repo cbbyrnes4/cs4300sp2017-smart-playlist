@@ -2,7 +2,6 @@ import logging
 from operator import itemgetter
 
 from django.db.models import Max
-from django.http import Http404
 
 from smart_playlist import db_builder, text_anal, af_clust, playlist, matrices
 from smart_playlist.models import Song, Lyric, AudioFeatures, Word
@@ -61,14 +60,14 @@ def search_v3(song, artist, alpha=ALPHA_1, beta=BETA_1, gamma=GAMMA_1):
     lyric_rank = text_anal.get_cosine_top_songs(song)
     cluster_songs, struct_songs = af_clust.get_both_sets(song.id)
     scores = [(i,
-               (alpha * lyric_rank[i] if i in lyric_rank else 0) +
+               (alpha * 2 * lyric_rank[i] if i in lyric_rank else 0) +
                (float(beta)/2 * 1 if i in cluster_songs else 0) +
                (float(beta)/2 if i in struct_songs else 0) +
                (gamma * playlist_rank[i] if i in playlist_rank else 0)) for
               i in range(num_ids)]
     scores.sort(key=itemgetter(1), reverse=True)
     return [(i,
-             (alpha * lyric_rank[i] if i in lyric_rank else 0),
+             (alpha * 2 * lyric_rank[i] if i in lyric_rank else 0),
              (float(beta) / 2 * 1 if i in cluster_songs else 0) +
              (float(beta) / 2 if i in struct_songs else 0),
              (gamma * playlist_rank[i] if i in playlist_rank else 0),
