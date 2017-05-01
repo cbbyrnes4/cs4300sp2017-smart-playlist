@@ -79,12 +79,14 @@
             <div class="panel panel-default">
               <div class="panel-heading">
                 <h4 class="panel-title">
-                  <a data-toggle="collapse" data-parent="#accordion" href="#collapse0"><span id="query">You searched for: </span>{{ query_song }}</a>
+                  <a data-toggle="collapse" data-parent="#accordion" href="#collapse0"><span id="query">You searched for: </span>{{ query_song.name }}</a>
                 </h4>
               </div>
               <div id="collapse0" class="panel-collapse collapse in">
                 <div class="panel-body">
-                                        <br>
+                    <image src="{{ query_song.artwork }}" width="256" height="256"/>
+                    <audio class="js-music music-player-item" src="{{ query_song.preview }}" controls></audio>
+                    <br>
                     <h4>Song Characteristics</h4>
                     <br>
                     {% for feature in query_features.af %}

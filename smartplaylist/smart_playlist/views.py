@@ -22,7 +22,6 @@ spotify_secret = '55b73d4d03a44a309973c0693edbeaf9'
 spo_cred_manager = SpotifyClientCredentials(spotify_key, spotify_secret)
 sp = spotipy.Spotify(client_credentials_manager=spo_cred_manager)
 
-
 # def search(request):
 #     query_song = None
 #     songs = None
@@ -47,14 +46,21 @@ sp = spotipy.Spotify(client_credentials_manager=spo_cred_manager)
 #             top_songs = search_methods.search_v3(song, artist, alpha, beta, gamma)
 #         output = top_songs[1:21]
 #         query_song = db_builder.build_song_from_name(song, artist)[0]
-#         songs = [{'song': unidecode(Song.objects.get(id=i).__str__()), 
-#                  'lyric': lyric, 
-#                  'cluster': cluster, 
-#                  'playlist': playlist, 
-#                  'total': total,
-#                  'features': search_methods.get_similar_features(i, query_song.id),
-#                  'preview': sp.track(str(Song.objects.values_list('spotify_id').get(id=i)[0]))['preview_url']} 
-#                  for i, lyric, cluster, playlist, total in output]
+#         songs = []
+
+#         for i, lyric, cluster, playlist, total in output:
+#             spotify_song = sp.track(str(Song.objects.values_list('spotify_id').get(id=i)[0]))
+
+#             song_json = {'song': unidecode(Song.objects.get(id=i).__str__()), 
+#                 'lyric': lyric, 
+#                 'cluster': cluster, 
+#                 'playlist': playlist, 
+#                 'total': total,
+#                 'features': search_methods.get_similar_features(i, query_song.id),
+#                 'preview': spotify_song['preview_url'],
+#                 'artwork': spotify_song['album']['images'][0]['url']} 
+
+#             songs.append(song_json)
 #         query = (song, artist)
 #         query_features = search_methods.get_features(query_song.id)
 #         query_song = unidecode(query_song.__str__())
@@ -102,7 +108,10 @@ def search(request):
             songs.append(song_json)
         query = (song, artist)
         query_features = search_methods.get_features(query_song.id)
-        query_song = unidecode(query_song.__str__())
+        spotify_query = sp.track(str(query_song.spotify_id))
+        query_song = {'name': query_song.__str__(),
+                      'preview': spotify_query['preview_url'],
+                      'artwork': spotify_query['album']['images'][0]['url'] }
     return render(request, "smart_playlist/base.html", context=
     { 'songs': songs, 'query': query, 'query_song': query_song , 'query_features': query_features })
 
