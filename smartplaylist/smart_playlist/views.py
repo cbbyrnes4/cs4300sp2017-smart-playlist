@@ -3,7 +3,7 @@ import logging
 
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render_to_response, render
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseNotFound
 from unidecode import unidecode
 
 import json
@@ -22,51 +22,6 @@ spotify_secret = '55b73d4d03a44a309973c0693edbeaf9'
 spo_cred_manager = SpotifyClientCredentials(spotify_key, spotify_secret)
 sp = spotipy.Spotify(client_credentials_manager=spo_cred_manager)
 
-# def search(request):
-#     query_song = None
-#     songs = None
-#     query = None
-#     query_features = None
-#     if not matrices.initialized:
-#         matrices.load_matrices()
-#     if request.GET.get('song'):
-#         song = request.GET.get('song')
-#         artist = request.GET.get('artist')
-#         if request.GET.get('version') == '1':
-#             logger.info("Using V1")
-#             top_songs = search_methods.search_v1(song, artist)
-#         elif request.GET.get('version') == '2':
-#             logger.info("Using V2")
-#             top_songs = search_methods.search_v2(song, artist)
-#         else:
-#             logger.info("Using V3")
-#             alpha = float(request.GET.get('alpha')) / 100
-#             beta = float(request.GET.get('beta')) / 100
-#             gamma = float(request.GET.get('gamma')) / 100
-#             top_songs = search_methods.search_v3(song, artist, alpha, beta, gamma)
-#         output = top_songs[1:21]
-#         query_song = db_builder.build_song_from_name(song, artist)[0]
-#         songs = []
-
-#         for i, lyric, cluster, playlist, total in output:
-#             spotify_song = sp.track(str(Song.objects.values_list('spotify_id').get(id=i)[0]))
-
-#             song_json = {'song': unidecode(Song.objects.get(id=i).__str__()), 
-#                 'lyric': lyric, 
-#                 'cluster': cluster, 
-#                 'playlist': playlist, 
-#                 'total': total,
-#                 'features': search_methods.get_similar_features(i, query_song.id),
-#                 'preview': spotify_song['preview_url'],
-#                 'artwork': spotify_song['album']['images'][0]['url']} 
-
-#             songs.append(song_json)
-#         query = (song, artist)
-#         query_features = search_methods.get_features(query_song.id)
-#         query_song = unidecode(query_song.__str__())
-#     return render(request, "smart_playlist/base.html", context=
-#     { 'songs': songs, 'query': query, 'query_song': query_song , 'query_features': query_features })
-
 def search(request):
     query_song = None
     songs = None
@@ -84,13 +39,21 @@ def search(request):
             logger.info("Using V2")
             top_songs = search_methods.search_v2(song, artist)
         else:
-            logger.info("Using V3")
-            alpha = float(request.GET.get('alpha')) / 100
-            beta = float(request.GET.get('beta')) / 100
-            gamma = float(request.GET.get('gamma')) / 100
-            top_songs = search_methods.search_v3(song, artist, alpha, beta, gamma)
+            try:
+                logger.info("Using V3")
+                alpha = float(request.GET.get('alpha')) / 100
+                beta = float(request.GET.get('beta')) / 100
+                gamma = float(request.GET.get('gamma')) / 100
+                top_songs = search_methods.search_v3(song, artist, alpha, beta, gamma)
+            except:
+                return render(request, 'smart_playlist/404.html')
+
         output = top_songs[1:21]
         query_song = db_builder.build_song_from_name(song, artist)[0]
+
+        if query_song == None:
+            return render(request, 'smart_playlist/404.html')
+
         songs = []
 
         for i, lyric, cluster, playlist, total in output:

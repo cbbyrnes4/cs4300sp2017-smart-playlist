@@ -22,16 +22,14 @@
     
     <body>
         <form action='' class="form-inline global-search" method='GET'>
-            <h1 style="font-size: 55px; font-family:Futura,serif; color: #1DB954">
-                Smart Playlist Generator
-            </h1>
+            <h1>Smart Playlist Generator</h1>
             
             <br><br>
 
             <div class="form-group ui-widget">
-                <input id="song" type="text" name="song" class="form-control ui-autocomplete-input"
+                <input id="song" type="text" name="song" class="form-control ui-autocomplete-input autocomplete"
                        {% if query %}value="{{ query.0 }}"{% endif %} placeholder="Song Name" autocomplete="off">
-                <input id="artist" type="text" name="artist" class="form-control ui-widget"
+                <input id="artist" type="text" name="artist" class="form-control ui-widget autocomplete"
                        {% if query %}value="{{ query.1 }}"{% endif %} placeholder="Artist Name">
                 <br>
                 <label for="v1">Version 1</label><input id="v1" type="radio" name="version" value=1 class="form-control ui-widget">
