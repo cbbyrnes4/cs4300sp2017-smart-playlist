@@ -4,10 +4,8 @@
         <link rel="stylesheet" href="{% static 'smart_playlist/bootstrap.min.css' %}">
         <link rel="stylesheet" href="{% static 'smart_playlist/main.css' %}">
         <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-
-        <!-- <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css"
-         rel = "stylesheet"> -->
         <link href="https://code.jquery.com/ui/1.12.1/themes/black-tie/jquery-ui.css" rel="stylesheet">
+
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="http://tracking.musixmatch.com/t1.0/AMa6hJCIEzn1v8RuOP"></script>
@@ -23,41 +21,36 @@
     <body>
         <form action='' class="form-inline global-search" method='GET'>
             <h1>Smart Playlist Generator</h1>
-            
-            <br><br>
 
             <div class="form-group ui-widget">
                 <input id="song" type="text" name="song" class="form-control ui-autocomplete-input autocomplete"
                        {% if query %}value="{{ query.0 }}"{% endif %} placeholder="Song Name" autocomplete="off">
                 <input id="artist" type="text" name="artist" class="form-control ui-widget autocomplete"
-                       {% if query %}value="{{ query.1 }}"{% endif %} placeholder="Artist Name">
-                <br>
-                <label for="v1">Version 1</label><input id="v1" type="radio" name="version" value=1 class="form-control ui-widget">
-                <label for="v2">Version 2</label><input id="v2" type="radio" name="version" value=2 class="form-control ui-widget">
-                <label for="v3">Version 3</label><input id="v3" type="radio" name="version" value=3 checked class="form-control ui-widget">
-                <br>
-                <label>
-                    Lyrics
+                           {% if query %}value="{{ query.1 }}"{% endif %} placeholder="Artist Name">
+
+                <div class="input">
+                    <label for="v1">Version 1</label><input type="radio" id="v1" name="version" value=1 class="form-control ui-widget">
+                    <label for="v2">Version 2</label><input type="radio" id="v2" name="version" value=2 class="form-control ui-widget">
+                    <label for="v3">Version 3</label><input type="radio" id="v3" name="version" value=3 checked class="form-control ui-widget">
+                </div>
+
+                <div class="input">
+                    <label for="alpha">Lyrics</label>
                     <input name="alpha" id="input" type="range" min="0" max="200" value="100" class="form-control"
-                           onchange="showValue('lyric_weight', this.value)"/>
-                </label>
-                <span id="lyric_weight">100</span>
-                <br>
-                <label>
-                    Audio Features
+                               onchange="showValue('lyric_weight', this.value)"/>
+                    <span id="lyric_weight">100</span><br />
+
+                    <label for="beta">Audio Features</label>
                     <input name="beta" id="input" type="range" min="0" max="200" value="100" class="form-control"
-                           onchange="showValue('audio_weight', this.value)"/>
-                </label>
-                <span id="audio_weight">100</span>
-                <br>
-                <label>
-                    Playlist Similarity
+                               onchange="showValue('audio_weight', this.value)"/>
+                    <span id="audio_weight">100</span><br />
+
+                    <label for="gamma">Playlist Similarity</label>
                     <input name="gamma" id="input" type="range" min="0" max="200" value="100" class="form-control"
-                           onchange="showValue('playlist_weight', this.value)"/>
-                </label>
-                <span id="playlist_weight">100</span>
+                               onchange="showValue('playlist_weight', this.value)"/>
+                    <span id="playlist_weight">100</span><br />
+                </div>
             </div>
-            <br>
 
             <!-- https://simpleisbetterthancomplex.com/tutorial/2016/08/29/how-to-work-with-ajax-request-with-django.html -->
             <!-- http://jqueryui.com/autocomplete/#remote-jsonp -->
@@ -66,6 +59,7 @@
         </form>
         
         {% if songs %}
+
         <div class="container">
           <div class="panel-group" id="accordion">
             <div class="panel panel-default">
@@ -96,7 +90,8 @@
                 </div>
               </div>
             </div>
-              {% for song in songs %}
+
+            {% for song in songs %}
             <div class="panel panel-default">
               <div class="panel-heading">
                 <h4 class="panel-title">
@@ -141,6 +136,7 @@
               </div>
             </div>
             {% endfor %}
+
           </div>
         </div>
 
