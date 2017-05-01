@@ -28,7 +28,7 @@ def calc_cosine_sims(song):
 
 
 def tfidf(word_id, count):
-    return count * np.log(matrices.song_count / matrices.doc_freq[word_id])
+    return count * np.log(matrices.song_count / (matrices.doc_freq[word_id] + 1))
 
 
 

@@ -1,4 +1,5 @@
 import collections
+import string
 import sys
 
 import django
@@ -8,7 +9,6 @@ import spotipy
 from spotipy import SpotifyException
 from spotipy.oauth2 import SpotifyClientCredentials
 from unidecode import unidecode
-from django.http import Http404
 
 django.setup()
 
@@ -70,7 +70,8 @@ def get_all_spotify_info_name(name, artist_name, album_name=None):
         results = sp.search(q=q_string, type='track', limit=1)
         results = results['tracks']['items'][0]
         return parse_spotify_track_object(results)
-    except:
+    except KeyError:
+        # No Song was found
         return None, None, None
 
 
@@ -341,6 +342,8 @@ def lyricize(song):
 
 
 stemmer = nltk.stem.PorterStemmer()
+stop_words = nltk.corpus.stopwords.words()
+stop_words.extend(string.punctuation)
 
 
 def bag_of_wordize(lyrics):
@@ -350,7 +353,7 @@ def bag_of_wordize(lyrics):
     :return: dictionary of {'word': word_count}
     """
     tokens = nltk.word_tokenize(lyrics)
-    stems = [stemmer.stem(token) for token in tokens]
+    stems = [stemmer.stem(token) for token in tokens if token not in stop_words]
     bag_of_words = collections.Counter(stems)
     return bag_of_words
 

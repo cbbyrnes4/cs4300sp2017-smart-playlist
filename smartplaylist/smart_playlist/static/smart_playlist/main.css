@@ -22,13 +22,7 @@
 		width: 400px;
 	}
 
-	/*.global-search * {
-		display:inline-block;
-		margin-bottom:0;
-	}*/
 }
-
-
 
 .btn{
 	background-color: #1DB954;
@@ -39,36 +33,24 @@
 	color: #4285F4;
 }
 
-.ui-widget { 
-	font-family:Futura,serif;
-}
-
 * {
 	color: #1DB954;
+	font-family: "Helvetica Neue", Arial, serif;
 }
 
 .container {
 	padding: 15px;
 }
 
-#query {
-	color: #1DB954;
-}
 
 h1 {
-	font-size: 55px; 
-	font-family:Futura,serif; 
-	color: #1DB954;
+	font-size: 55px;
 	margin-bottom: 40px;
 }
 
 .input {
 	margin: 15px auto;
 }
-
-/*.clear {
-	clear: both;
-}*/
 
 #search-bars {
 	width: 400px;
@@ -78,11 +60,7 @@ h1 {
 
 .panel-body {
 	text-align: center;
-	background-color: #ddd; 
-}
-
-.score {
-	color: #191414;;
+	background-color: #ffffff;
 }
 
 div.assets {
@@ -99,4 +77,9 @@ audio {
 
 label {
 	margin-right: 5px;
+}
+
+.split-div {
+	display: flex;
+	justify-content: space-around;
 }
