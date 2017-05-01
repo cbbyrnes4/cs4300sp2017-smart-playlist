@@ -79,8 +79,15 @@
         </form>
         
         {% if songs %}
-
-        <div class="container">
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    // Handler for .ready() called.
+                    $('html, body').animate({
+                        scrollTop: $('#results').offset().top
+                    }, 'slow');
+                });
+            </script>
+            <div class="container" id="results">
           <div class="panel-group" id="accordion">
             <div class="panel panel-default">
               <div class="panel-heading">
