@@ -8,6 +8,7 @@ import spotipy
 from spotipy import SpotifyException
 from spotipy.oauth2 import SpotifyClientCredentials
 from unidecode import unidecode
+from django.http import Http404
 
 django.setup()
 
@@ -70,7 +71,6 @@ def get_all_spotify_info_name(name, artist_name, album_name=None):
         results = results['tracks']['items'][0]
         return parse_spotify_track_object(results)
     except:
-        # No Song was found
         return None, None, None
 
 
@@ -158,8 +158,6 @@ def build_song_from_name(name, artist_name):
     :return: Song object representing Song with provided name and artist, Whether new song was created (boolean)
     """
     spo_song_info, spo_artist_info, spo_album_info = get_all_spotify_info_name(name, artist_name)
-    if spo_song_info == None or spo_artist_info == None or spo_album_info == None:
-        return None
     if Song.objects.filter(spotify_id=spo_song_info['id']).exists():
         # Song Already Exists
         return Song.objects.get(spotify_id=spo_song_info['id']), False

@@ -51,11 +51,9 @@ def search_v2(song, artist):
 
 def search_v3(song, artist, alpha=ALPHA_1, beta=BETA_1, gamma=GAMMA_1):
     num_ids = Song.objects.all().aggregate(Max('id'))['id__max']
+    
     song, created = db_builder.build_song_from_name(song, artist)
-
-    if song == None:
-        raise Http404("Song does not exist on Spotify")
-
+    
     if created or song.id >= matrices.playlist_concurrence.shape[0]:
         playlist_rank = {}
     else:

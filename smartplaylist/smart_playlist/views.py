@@ -39,21 +39,14 @@ def search(request):
             logger.info("Using V2")
             top_songs = search_methods.search_v2(song, artist)
         else:
-            try:
-                logger.info("Using V3")
-                alpha = float(request.GET.get('alpha')) / 100
-                beta = float(request.GET.get('beta')) / 100
-                gamma = float(request.GET.get('gamma')) / 100
-                top_songs = search_methods.search_v3(song, artist, alpha, beta, gamma)
-            except:
-                return render(request, 'smart_playlist/404.html')
+            logger.info("Using V3")
+            alpha = float(request.GET.get('alpha')) / 100
+            beta = float(request.GET.get('beta')) / 100
+            gamma = float(request.GET.get('gamma')) / 100
+            top_songs = search_methods.search_v3(song, artist, alpha, beta, gamma)
 
         output = top_songs[1:21]
         query_song = db_builder.build_song_from_name(song, artist)[0]
-
-        if query_song == None:
-            return render(request, 'smart_playlist/404.html')
-
         songs = []
 
         for i, lyric, cluster, playlist, total in output:
@@ -69,12 +62,14 @@ def search(request):
                 'artwork': spotify_song['album']['images'][0]['url']} 
 
             songs.append(song_json)
+
         query = (song, artist)
         query_features = search_methods.get_features(query_song.id)
         spotify_query = sp.track(str(query_song.spotify_id))
         query_song = {'name': query_song.__str__(),
                       'preview': spotify_query['preview_url'],
                       'artwork': spotify_query['album']['images'][0]['url'] }
+
     return render(request, "smart_playlist/base.html", context=
     { 'songs': songs, 'query': query, 'query_song': query_song , 'query_features': query_features })
 
