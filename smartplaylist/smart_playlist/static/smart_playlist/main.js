@@ -14,4 +14,8 @@ $(function () {
 
 });
 
+function showValue(id, newValue) {
+    document.getElementById(id).innerHTML = String(newValue)
+}
+
   

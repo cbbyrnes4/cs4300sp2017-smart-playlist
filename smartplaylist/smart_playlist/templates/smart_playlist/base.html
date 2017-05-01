@@ -56,12 +56,6 @@
                            onchange="showValue('playlist_weight', this.value)"/>
                 </label>
                 <span id="playlist_weight">100</span>
-
-                <script type="text/javascript">
-                    function showValue(id, newValue) {
-                        document.getElementById(id).innerHTML = String(newValue)
-                    }
-                </script>
             </div>
             <br>
 
@@ -82,22 +76,23 @@
               </div>
               <div id="collapse0" class="panel-collapse collapse in">
                 <div class="panel-body">
-                    <image src="{{ query_song.artwork }}" width="256" height="256"/>
-                    <audio class="js-music music-player-item" src="{{ query_song.preview }}" controls></audio>
+                    <div class="assets">
+                        <image src="{{ query_song.artwork }}" width="256" height="256"/><br>
+                        <audio class="js-music music-player-item" src="{{ query_song.preview }}" controls></audio>
+                    </div>
                     <br>
-                    <h4>Song Characteristics</h4>
-                    <br>
-                    {% for feature in query_features.af %}
-                        <p>{{ feature.0 }}: {{ feature.1|floatformat:3 }}</p>
-                        <br>
-                    {% endfor %}
-                    <br>
-                    <h4>Song Audio Features</h4>
-                    <br>
-                    {% for feature in query_features.sf %}
-                        <p>{{ feature.0 }}: {{ feature.1|floatformat:3 }}</p>
-                        <br>
-                    {% endfor %}
+                    <h5>Song Characteristics</h4>
+                    <div>
+                        {% for feature in query_features.af %}
+                            {{ feature.0 }}: {{ feature.1|floatformat:3 }}<br>
+                        {% endfor %}
+                    </div>
+                    <h5>Song Audio Features</h4>
+                    <div>
+                        {% for feature in query_features.sf %}
+                            {{ feature.0 }}: {{ feature.1|floatformat:3 }}<br>
+                        {% endfor %}
+                    </div>
                 </div>
               </div>
             </div>
@@ -110,34 +105,38 @@
               </div>
               <div id="collapse{{ forloop.counter }}" class="panel-collapse collapse">
                 <div class="panel-body">
-                    <image src="{{ song.artwork }}" width="256" height="256"/>
-                    <audio class="js-music music-player-item" src="{{ song.preview }}" controls></audio>
-                    <h4>Similar Lyrics (by TF-IDF)</h4>
-                    <br>
-                    {% for lyric in song.features.lyrics %}
-                        <p>{{ lyric.0 }}: {{ lyric.1 }} and {{ lyric.2 }}</p>
-                        <br>
-                    {% endfor %}
-                    <h5>Lyrics Score: {{ song.lyric }}</h5>
+                    <div class="assets">
+                        <image src="{{ song.artwork }}" width="256" height="256"/><br>
+                        <audio class="js-music music-player-item" src="{{ song.preview }}" controls></audio>
+                    </div>
+                    <h5>Similar Lyrics (by TF-IDF)</h4>
+                    <div>
+                        {% for lyric in song.features.lyrics %}
+                            {{ lyric.0 }}: {{ lyric.1 }} and {{ lyric.2 }}<br>
+                        {% endfor %}
+                    </div>
 
-                    <br>
-                    <h4>Similar Characteristics</h4>
-                    <br>
-                    {% for feature in song.features.af %}
-                        <p>{{ feature.0 }}: {{ feature.1|floatformat:3}} vs. {{ feature.2|floatformat:3 }}</p>
-                        <br>
-                    {% endfor %}
-                    <h4>Similar Features</h4>
-                    {% for feature in song.features.sf %}
-                        <p>{{ feature.0 }}: {{ feature.1|floatformat:3}} vs. {{ feature.2|floatformat:3 }}</p>
-                        <br>
-                    {% endfor %}
-                    <h5>Cluster Score: {{ song.cluster }}</h5>
-                    <br>
-                    <h4>Number of Shared Playlists: {{ song.features.pc }}</h4>
-                    <h5>Playlist Score: {{ song.playlist }}</h5>
-                    <br>
-                    <h3>Total Score: {{ song.total|floatformat:5 }}</h3>
+                    <h4 class="score">Lyrics Score: {{ song.lyric }}</h5>
+                    
+                    <h5>Similar Characteristics</h4>
+                    <div>
+                        {% for feature in song.features.af %}
+                            {{ feature.0 }}: {{ feature.1|floatformat:3}} vs. {{ feature.2|floatformat:3 }}<br>
+                        {% endfor %}
+                    </div>
+
+                    <h5>Similar Features</h4>
+                    <div>
+                        {% for feature in song.features.sf %}
+                            {{ feature.0 }}: {{ feature.1|floatformat:3}} vs. {{ feature.2|floatformat:3 }}<br>
+                        {% endfor %}
+                    </div>
+
+                    <h4 class="score">Cluster Score: {{ song.cluster }}</h5>
+
+                    <h5>Number of Shared Playlists: {{ song.features.pc }}</h4>
+                    <h4 class="score">Playlist Score: {{ song.playlist }}</h5>
+                    <h3 class="score">Total Score: {{ song.total|floatformat:5 }}</h3>
                 </div>
               </div>
             </div>
