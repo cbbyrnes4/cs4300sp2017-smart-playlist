@@ -1,6 +1,7 @@
 import logging
 from operator import itemgetter
 
+from django.core.cache import cache
 from django.db.models import Max
 
 from smart_playlist import db_builder, text_anal, af_clust, playlist, matrices
@@ -52,27 +53,35 @@ def search_v3(song, artist, alpha=ALPHA_1, beta=BETA_1, gamma=GAMMA_1):
     num_ids = Song.objects.all().aggregate(Max('id'))['id__max']
     
     song, created = db_builder.build_song_from_name(song, artist)
-    
-    if created or song.id >= matrices.playlist_concurrence.shape[0]:
-        playlist_rank = {}
+    cached = cache.get(scores_key(song.id))
+    if cached:
+        logger.info("Query Cached")
+        songs = cached
     else:
-        playlist_rank = playlist.playlist_pmi(song.id)
-    lyric_rank = text_anal.get_cosine_top_songs(song)
-    cluster_songs, struct_songs = af_clust.get_both_sets(song.id)
+        lyric_rank = text_anal.get_cosine_top_songs(song)
+        cluster_songs, struct_songs = af_clust.get_both_sets(song.id)
+
+        if created or song.id >= matrices.playlist_concurrence.shape[0]:
+            playlist_rank = {}
+        else:
+            playlist_rank = playlist.playlist_pmi(song.id)
+
+        songs = [(i,
+                  (lyric_rank[i] if i in lyric_rank else 0),
+                  (1 if i in cluster_songs else 0) +
+                  (1 if i in struct_songs else 0),
+                  (playlist_rank[i] if i in playlist_rank else 0))
+                 for i in range(num_ids)]
+        cache.set(scores_key(song.id), songs)
+
     scores = [(i,
-               (alpha * 2 * lyric_rank[i] if i in lyric_rank else 0) +
-               (float(beta)/2 * 1 if i in cluster_songs else 0) +
-               (float(beta)/2 if i in struct_songs else 0) +
-               (gamma * playlist_rank[i] if i in playlist_rank else 0)) for
-              i in range(num_ids)]
-    scores.sort(key=itemgetter(1), reverse=True)
-    return [(i,
-             (alpha * 2 * lyric_rank[i] if i in lyric_rank else 0),
-             (float(beta) / 2 * 1 if i in cluster_songs else 0) +
-             (float(beta) / 2 if i in struct_songs else 0),
-             (gamma * playlist_rank[i] if i in playlist_rank else 0),
-             score)
-            for i, score in scores]
+               alpha * 2 * lr,
+               float(beta) * cr,
+               gamma * pr, (alpha * 2 * lr) + (float(beta) * cr) + (gamma * pr))
+              for i, lr, cr, pr in songs]
+
+    scores.sort(key=itemgetter(4), reverse=True)
+    return scores
 
 
 def get_features(song):
@@ -84,6 +93,9 @@ def get_features(song):
 
 
 def get_similar_features(song, q_id):
+    cached = cache.get(similarity_key(song, q_id))
+    if cached:
+        return cached
     af = [(key, val, val2, val - val2) for (key, val), (key1, val2) in
           zip(AudioFeatures.objects.get(song_id=song), AudioFeatures.objects.get(song_id=q_id)) if
           key in matrices.good_features]
@@ -112,4 +124,14 @@ def get_similar_features(song, q_id):
     tf_scores.sort(key=itemgetter(1), reverse=True)
     top_lyrics = [(Word.objects.get(id=wid).word, text_anal.tfidf(wid, qc), text_anal.tfidf(wid, sc))
                   for wid, _, qc, sc in tf_scores[:10]]
-    return {'af': audio_features, 'sf': struct_features, 'pc': pc, 'lyrics': top_lyrics}
+    context = {'af': audio_features, 'sf': struct_features, 'pc': pc, 'lyrics': top_lyrics}
+    cache.set(similarity_key(song, q_id), context)
+    return context
+
+
+def scores_key(song_id):
+    return "scrs%s" % song_id
+
+
+def similarity_key(s1, s2):
+    return "sf%s%s" % (s1, s2)

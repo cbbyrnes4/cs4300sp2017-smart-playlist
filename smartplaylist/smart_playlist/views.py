@@ -2,11 +2,14 @@
 import logging
 
 import spotipy
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.cache import cache_page
 from spotipy.oauth2 import SpotifyClientCredentials
 from unidecode import unidecode
 
+from mysite import settings
 from smart_playlist import search_methods, matrices, db_builder
 from smart_playlist.models import Song, Artist
 
@@ -18,7 +21,10 @@ spotify_secret = '55b73d4d03a44a309973c0693edbeaf9'
 spo_cred_manager = SpotifyClientCredentials(spotify_key, spotify_secret)
 sp = spotipy.Spotify(client_credentials_manager=spo_cred_manager)
 
+CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
+
+@cache_page(CACHE_TTL)
 def search(request):
     query_song = None
     songs = None
