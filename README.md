@@ -4,4 +4,4 @@ Final project for CS 4300 - Language and Information. This project allows a user
 such as Lyric Similarity, Song Feature Similarity, and Cooccurring Playlist Similarity. The system, in turn, returns a playlist
 of songs the user may find enjoyable.
 
-Credits to Ian Blakley, Yordanos Goshu, and Jon Wu
+Credits to Ian Blakley, Yordanos Goshu, and Jon Wu for working on this with me.
